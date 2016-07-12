@@ -1,0 +1,14 @@
+hash: ddb733035722468f20d6094787ae5cf06fc9f822ecdef2dcfad73d12f0d8c245
+updated: 2016-07-12T20:28:20.33834158+02:00
+imports:
+- name: github.com/go-gl/mathgl
+  version: 40510979b0b281f0fdb879958e0416f38f0f3504
+  repo: https://github.com/go-gl/mathgl
+  vcs: git
+  subpackages:
+  - mgl64
+- name: golang.org/x/image
+  version: a21e5be7b49fd6d0c47097c7a31fb763802c1117
+  subpackages:
+  - math/f64
+testImports: []
