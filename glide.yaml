@@ -1,0 +1,8 @@
+package: github.com/Erdk/gort
+import:
+- package: github.com/go-gl/mathgl
+  vcs: git
+  version: 40510979b0b281f0fdb879958e0416f38f0f3504
+  repo: https://github.com/go-gl/mathgl
+  subpackages:
+  - mgl64
