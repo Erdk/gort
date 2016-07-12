@@ -2,7 +2,12 @@ package main
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"math"
+	"os"
+	"sync"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -15,13 +20,13 @@ func (r *ray) point_at_param(t float64) mgl64.Vec3 {
 	return r.origin.Add(r.direction.Mul(t))
 }
 
-type hit_rec struct {
+type hit struct {
 	t    float64
 	p, n mgl64.Vec3
 }
 
 type hitable interface {
-	hit(r *ray, t_min, t_max float64) (bool, hit_rec)
+	calc_hit(r *ray, t_min, t_max float64) (bool, hit)
 }
 
 type sphere struct {
@@ -29,7 +34,7 @@ type sphere struct {
 	r float64
 }
 
-func (s *sphere) hit(r *ray, t_min, t_max float64) (bool, hit_rec) {
+func (s *sphere) calc_hit(r *ray, t_min, t_max float64) (bool, hit) {
 	oc := r.origin.Sub(s.c)
 	a := r.direction.Dot(*r.direction)
 	b := oc.Dot(*r.direction)
@@ -39,7 +44,7 @@ func (s *sphere) hit(r *ray, t_min, t_max float64) (bool, hit_rec) {
 	if discriminant > 0 {
 		temp := (-b - math.Sqrt(b*b-a*c)) / a
 		if temp < t_max && temp > t_min {
-			var rec hit_rec
+			var rec hit
 			rec.t = temp
 			rec.p = r.point_at_param(rec.t)
 			rec.n = rec.p.Sub(s.c)
@@ -49,7 +54,7 @@ func (s *sphere) hit(r *ray, t_min, t_max float64) (bool, hit_rec) {
 
 		temp = (-b + math.Sqrt(b*b-a*c)) / a
 		if temp < t_max && temp > t_min {
-			var rec hit_rec
+			var rec hit
 			rec.t = temp
 			rec.p = r.point_at_param(rec.t)
 			rec.n = rec.p.Sub(s.c)
@@ -58,34 +63,19 @@ func (s *sphere) hit(r *ray, t_min, t_max float64) (bool, hit_rec) {
 		}
 	}
 
-	return false, hit_rec{}
+	return false, hit{}
 }
 
-/*
-func hit_sphere(center *mgl64.Vec3, rad float64, r *ray) float64 {
-	oc := r.origin.Sub(*center)
-	a := r.direction.Dot(*r.direction)
-	b := 2.0 * oc.Dot(*r.direction)
-	c := oc.Dot(oc) - rad*rad
-	discriminant := b*b - 4*a*c
-	if discriminant < 0 {
-		return -1.0
-	} else {
-		return (-b - math.Sqrt(discriminant)) / (2.0 * a)
-	}
-}
-*/
 type world struct {
 	objs []hitable
 }
 
-func (w *world) hit(r *ray, t_min, t_max float64) (bool, hit_rec) {
-	var ret_rec hit_rec
+func (w *world) calc_hit(r *ray, t_min, t_max float64) (bool, hit) {
+	var ret_rec hit
 	hit_anything := false
 	closest_so_far := t_max
 	for _, v := range w.objs {
-		//		fmt.Printf("world obj: %v\n", v)
-		if h, rec := v.hit(r, t_min, closest_so_far); h {
+		if h, rec := v.calc_hit(r, t_min, closest_so_far); h {
 			hit_anything = true
 			closest_so_far = rec.t
 			ret_rec = rec
@@ -95,12 +85,12 @@ func (w *world) hit(r *ray, t_min, t_max float64) (bool, hit_rec) {
 	if hit_anything {
 		return true, ret_rec
 	} else {
-		return false, hit_rec{}
+		return false, hit{}
 	}
 }
 
-func color(r *ray, w *world) mgl64.Vec3 {
-	if h, rec := w.hit(r, 0.0, math.MaxFloat64); h {
+func ret_color(r *ray, w *world) mgl64.Vec3 {
+	if h, rec := w.calc_hit(r, 0.0, math.MaxFloat64); h {
 		return mgl64.Vec3{0.5 * (rec.n.X() + 1.0), 0.5 * (rec.n.Y() + 1.0), 0.5 * (rec.n.Z() + 1)}
 	}
 
@@ -112,10 +102,14 @@ func color(r *ray, w *world) mgl64.Vec3 {
 }
 
 func main() {
+
+	if len(os.Args) != 2 {
+		fmt.Printf("Usage: %v <filename>\n", os.Args[0])
+		os.Exit(1)
+	}
+
 	nx := 1280
 	ny := 640
-
-	fmt.Printf("P3\n%d %d\n255\n", nx, ny)
 
 	lower_left_corner := mgl64.Vec3{-2.0, -1.0, -1.0}
 	horizontal := mgl64.Vec3{4.0, 0.0, 0.0}
@@ -125,18 +119,36 @@ func main() {
 	w := &world{}
 	w.objs = append(w.objs, &sphere{r: 0.5, c: mgl64.Vec3{0.0, 0.0, -1.0}}, &sphere{r: 100, c: mgl64.Vec3{0.0, -100.5, -1.0}})
 
-	for j := ny - 1; j >= 0; j-- {
-		for i := 0; i < nx; i++ {
-			u := float64(i) / float64(nx)
-			v := float64(j) / float64(ny)
+	img := image.NewRGBA(image.Rect(0, 0, 1280, 640))
 
-			temp := lower_left_corner.Add(horizontal.Mul(u))
-			temp = temp.Add(vertical.Mul(v))
-			r := &ray{origin: origin, direction: &temp}
+	var wg sync.WaitGroup
+	wg.Add(4)
 
-			col := color(r, w)
-			col = col.Mul(255.99)
-			fmt.Printf("%v %v %v\n", int(col.X()), int(col.Y()), int(col.Z()))
+	f := func(x1, x2 int) {
+		defer wg.Done()
+		for j := 0; j < ny; j++ {
+			for i := x1; i < x2; i++ {
+				u := float64(i) / float64(nx)
+				v := float64(j) / float64(ny)
+
+				temp := lower_left_corner.Add(horizontal.Mul(u))
+				temp = temp.Add(vertical.Mul(v))
+				r := &ray{origin: origin, direction: &temp}
+
+				col := ret_color(r, w)
+				col = col.Mul(255.99)
+				img.Set(i, ny-j, color.RGBA{uint8(col.X()), uint8(col.Y()), uint8(col.Z()), 255})
+			}
 		}
 	}
+
+	for i := 0; i < 4; i++ {
+		go f(nx/4*i, nx/4*(i+1))
+	}
+
+	fd, _ := os.Create(os.Args[1] + ".png")
+	defer fd.Close()
+
+	wg.Wait()
+	png.Encode(fd, img)
 }
