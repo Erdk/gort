@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/png"
 	"math"
+	"math/rand"
 	"os"
 	"sync"
 
@@ -89,9 +90,24 @@ func (w *world) calc_hit(r *ray, t_min, t_max float64) (bool, hit) {
 	}
 }
 
+func random_in_unit_sphere() mgl64.Vec3 {
+	p := mgl64.Vec3{2.0 * rand.Float64(), 2.0 * rand.Float64(), 2.0 * rand.Float64()}
+	p = p.Sub(mgl64.Vec3{1.0, 1.0, 1.0})
+	for p.Len()*p.Len() >= 1.0 {
+		p = mgl64.Vec3{2.0 * rand.Float64(), 2.0 * rand.Float64(), 2.0 * rand.Float64()}
+		p = p.Sub(mgl64.Vec3{1.0, 1.0, 1.0})
+	}
+
+	return p
+}
+
 func ret_color(r *ray, w *world) mgl64.Vec3 {
-	if h, rec := w.calc_hit(r, 0.0, math.MaxFloat64); h {
-		return mgl64.Vec3{0.5 * (rec.n.X() + 1.0), 0.5 * (rec.n.Y() + 1.0), 0.5 * (rec.n.Z() + 1)}
+	if h, rec := w.calc_hit(r, 0.001, math.MaxFloat64); h {
+		target := rec.p.Add(rec.n.Add(random_in_unit_sphere()))
+		tmp := target.Sub(rec.p)
+		ret := ret_color(&ray{&rec.p, &tmp}, w)
+		//return mgl64.Vec3{0.5 * (rec.n.X() + 1.0), 0.5 * (rec.n.Y() + 1.0), 0.5 * (rec.n.Z() + 1)}
+		return ret.Mul(0.5)
 	}
 
 	uv := r.direction.Normalize()
@@ -100,6 +116,29 @@ func ret_color(r *ray, w *world) mgl64.Vec3 {
 	tmp := mgl64.Vec3{0.5 * t, 0.7 * t, 1.0 * t}
 	return ret.Add(tmp)
 }
+
+type viewport struct {
+	lower_left_corner, horizontal, vertical, origin mgl64.Vec3
+}
+
+func NewVP() *viewport {
+	var vp viewport
+	vp.lower_left_corner = mgl64.Vec3{-2.0, -1.0, -1.0}
+	vp.horizontal = mgl64.Vec3{4.0, 0.0, 0.0}
+	vp.vertical = mgl64.Vec3{0.0, 2.0, 0.0}
+	vp.origin = mgl64.Vec3{0.0, 0.0, 0.0}
+
+	return &vp
+}
+
+func (vp *viewport) get_ray(u, v float64) ray {
+	tmp := vp.lower_left_corner.Add(vp.horizontal.Mul(u))
+	tmp = tmp.Add(vp.vertical.Mul(v)) //+ v * vertical - origin
+	tmp = tmp.Add(vp.origin.Mul(-1))
+	return ray{origin: &vp.origin, direction: &tmp}
+}
+
+const THREADS = 4
 
 func main() {
 
@@ -110,11 +149,9 @@ func main() {
 
 	nx := 1280
 	ny := 640
+	ns := 50
 
-	lower_left_corner := mgl64.Vec3{-2.0, -1.0, -1.0}
-	horizontal := mgl64.Vec3{4.0, 0.0, 0.0}
-	vertical := mgl64.Vec3{0.0, 2.0, 0.0}
-	origin := &mgl64.Vec3{0.0, 0.0, 0.0}
+	vp := NewVP()
 
 	w := &world{}
 	w.objs = append(w.objs, &sphere{r: 0.5, c: mgl64.Vec3{0.0, 0.0, -1.0}}, &sphere{r: 100, c: mgl64.Vec3{0.0, -100.5, -1.0}})
@@ -122,28 +159,29 @@ func main() {
 	img := image.NewRGBA(image.Rect(0, 0, 1280, 640))
 
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(THREADS)
 
 	f := func(x1, x2 int) {
 		defer wg.Done()
 		for j := 0; j < ny; j++ {
 			for i := x1; i < x2; i++ {
-				u := float64(i) / float64(nx)
-				v := float64(j) / float64(ny)
+				col := mgl64.Vec3{0.0, 0.0, 0.0}
+				for s := 0; s < ns; s++ {
+					u := (float64(i) + rand.Float64()) / float64(nx)
+					v := (float64(j) + rand.Float64()) / float64(ny)
+					r := vp.get_ray(u, v)
+					col = col.Add(ret_color(&r, w))
+				}
 
-				temp := lower_left_corner.Add(horizontal.Mul(u))
-				temp = temp.Add(vertical.Mul(v))
-				r := &ray{origin: origin, direction: &temp}
-
-				col := ret_color(r, w)
-				col = col.Mul(255.99)
+				col = col.Mul(1.0 / float64(ns))
+				col = mgl64.Vec3{math.Sqrt(col.X()) * 255.99, math.Sqrt(col.Y()) * 255.99, math.Sqrt(col.Z()) * 255.99}
 				img.Set(i, ny-j, color.RGBA{uint8(col.X()), uint8(col.Y()), uint8(col.Z()), 255})
 			}
 		}
 	}
 
-	for i := 0; i < 4; i++ {
-		go f(nx/4*i, nx/4*(i+1))
+	for i := 0; i < THREADS; i++ {
+		go f(nx/THREADS*i, nx/THREADS*(i+1))
 	}
 
 	fd, _ := os.Create(os.Args[1] + ".png")
