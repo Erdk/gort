@@ -24,5 +24,7 @@ _testmain.go
 *.prof
 
 gort
+gort.exe
 vendor
 *.png
+.vscode
