@@ -17,7 +17,7 @@ type ray struct {
 	origin, direction *mgl64.Vec3
 }
 
-func (r *ray) point_at_param(t float64) mgl64.Vec3 {
+func (r *ray) pointAtParam(t float64) mgl64.Vec3 {
 	return r.origin.Add(r.direction.Mul(t))
 }
 
@@ -27,7 +27,7 @@ type hit struct {
 }
 
 type hitable interface {
-	calc_hit(r *ray, t_min, t_max float64) (bool, hit)
+	calcHit(r *ray, tMin, tMax float64) (bool, hit)
 }
 
 type sphere struct {
@@ -35,7 +35,7 @@ type sphere struct {
 	r float64
 }
 
-func (s *sphere) calc_hit(r *ray, t_min, t_max float64) (bool, hit) {
+func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 	oc := r.origin.Sub(s.c)
 	a := r.direction.Dot(*r.direction)
 	b := oc.Dot(*r.direction)
@@ -44,20 +44,20 @@ func (s *sphere) calc_hit(r *ray, t_min, t_max float64) (bool, hit) {
 	discriminant := b*b - a*c
 	if discriminant > 0 {
 		temp := (-b - math.Sqrt(b*b-a*c)) / a
-		if temp < t_max && temp > t_min {
+		if temp < tMax && temp > tMin {
 			var rec hit
 			rec.t = temp
-			rec.p = r.point_at_param(rec.t)
+			rec.p = r.pointAtParam(rec.t)
 			rec.n = rec.p.Sub(s.c)
 			rec.n = rec.n.Mul(1.0 / s.r)
 			return true, rec
 		}
 
 		temp = (-b + math.Sqrt(b*b-a*c)) / a
-		if temp < t_max && temp > t_min {
+		if temp < tMax && temp > tMin {
 			var rec hit
 			rec.t = temp
-			rec.p = r.point_at_param(rec.t)
+			rec.p = r.pointAtParam(rec.t)
 			rec.n = rec.p.Sub(s.c)
 			rec.n = rec.n.Mul(1.0 / s.r)
 			return true, rec
@@ -71,26 +71,26 @@ type world struct {
 	objs []hitable
 }
 
-func (w *world) calc_hit(r *ray, t_min, t_max float64) (bool, hit) {
-	var ret_rec hit
-	hit_anything := false
-	closest_so_far := t_max
+func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
+	var retRec hit
+	hitAnything := false
+	closestSoFar := tMax
 	for _, v := range w.objs {
-		if h, rec := v.calc_hit(r, t_min, closest_so_far); h {
-			hit_anything = true
-			closest_so_far = rec.t
-			ret_rec = rec
+		if h, rec := v.calcHit(r, tMin, closestSoFar); h {
+			hitAnything = true
+			closestSoFar = rec.t
+			retRec = rec
 		}
 	}
 
-	if hit_anything {
-		return true, ret_rec
-	} else {
-		return false, hit{}
+	if hitAnything {
+		return true, retRec
 	}
+
+	return false, hit{}
 }
 
-func random_in_unit_sphere() mgl64.Vec3 {
+func randomInUnitSphere() mgl64.Vec3 {
 	p := mgl64.Vec3{2.0 * rand.Float64(), 2.0 * rand.Float64(), 2.0 * rand.Float64()}
 	p = p.Sub(mgl64.Vec3{1.0, 1.0, 1.0})
 	for p.Len()*p.Len() >= 1.0 {
@@ -101,11 +101,11 @@ func random_in_unit_sphere() mgl64.Vec3 {
 	return p
 }
 
-func ret_color(r *ray, w *world) mgl64.Vec3 {
-	if h, rec := w.calc_hit(r, 0.001, math.MaxFloat64); h {
-		target := rec.p.Add(rec.n.Add(random_in_unit_sphere()))
+func retColor(r *ray, w *world) mgl64.Vec3 {
+	if h, rec := w.calcHit(r, 0.001, math.MaxFloat64); h {
+		target := rec.p.Add(rec.n.Add(randomInUnitSphere()))
 		tmp := target.Sub(rec.p)
-		ret := ret_color(&ray{&rec.p, &tmp}, w)
+		ret := retColor(&ray{&rec.p, &tmp}, w)
 		//return mgl64.Vec3{0.5 * (rec.n.X() + 1.0), 0.5 * (rec.n.Y() + 1.0), 0.5 * (rec.n.Z() + 1)}
 		return ret.Mul(0.5)
 	}
@@ -118,12 +118,12 @@ func ret_color(r *ray, w *world) mgl64.Vec3 {
 }
 
 type viewport struct {
-	lower_left_corner, horizontal, vertical, origin mgl64.Vec3
+	lowerLeftCorner, horizontal, vertical, origin mgl64.Vec3
 }
 
-func NewVP() *viewport {
+func newVP() *viewport {
 	var vp viewport
-	vp.lower_left_corner = mgl64.Vec3{-2.0, -1.0, -1.0}
+	vp.lowerLeftCorner = mgl64.Vec3{-2.0, -1.0, -1.0}
 	vp.horizontal = mgl64.Vec3{4.0, 0.0, 0.0}
 	vp.vertical = mgl64.Vec3{0.0, 2.0, 0.0}
 	vp.origin = mgl64.Vec3{0.0, 0.0, 0.0}
@@ -131,14 +131,14 @@ func NewVP() *viewport {
 	return &vp
 }
 
-func (vp *viewport) get_ray(u, v float64) ray {
-	tmp := vp.lower_left_corner.Add(vp.horizontal.Mul(u))
+func (vp *viewport) getRay(u, v float64) ray {
+	tmp := vp.lowerLeftCorner.Add(vp.horizontal.Mul(u))
 	tmp = tmp.Add(vp.vertical.Mul(v)) //+ v * vertical - origin
 	tmp = tmp.Add(vp.origin.Mul(-1))
 	return ray{origin: &vp.origin, direction: &tmp}
 }
 
-const THREADS = 4
+const cTHREADS = 4
 
 func main() {
 
@@ -151,7 +151,7 @@ func main() {
 	ny := 640
 	ns := 50
 
-	vp := NewVP()
+	vp := newVP()
 
 	w := &world{}
 	w.objs = append(w.objs, &sphere{r: 0.5, c: mgl64.Vec3{0.0, 0.0, -1.0}}, &sphere{r: 100, c: mgl64.Vec3{0.0, -100.5, -1.0}})
@@ -159,7 +159,7 @@ func main() {
 	img := image.NewRGBA(image.Rect(0, 0, 1280, 640))
 
 	var wg sync.WaitGroup
-	wg.Add(THREADS)
+	wg.Add(cTHREADS)
 
 	f := func(x1, x2 int) {
 		defer wg.Done()
@@ -169,8 +169,8 @@ func main() {
 				for s := 0; s < ns; s++ {
 					u := (float64(i) + rand.Float64()) / float64(nx)
 					v := (float64(j) + rand.Float64()) / float64(ny)
-					r := vp.get_ray(u, v)
-					col = col.Add(ret_color(&r, w))
+					r := vp.getRay(u, v)
+					col = col.Add(retColor(&r, w))
 				}
 
 				col = col.Mul(1.0 / float64(ns))
@@ -180,8 +180,8 @@ func main() {
 		}
 	}
 
-	for i := 0; i < THREADS; i++ {
-		go f(nx/THREADS*i, nx/THREADS*(i+1))
+	for i := 0; i < cTHREADS; i++ {
+		go f(nx/cTHREADS*i, nx/cTHREADS*(i+1))
 	}
 
 	fd, _ := os.Create(os.Args[1] + ".png")
