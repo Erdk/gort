@@ -24,6 +24,7 @@ func (r *ray) pointAtParam(t float64) mgl64.Vec3 {
 type hit struct {
 	t    float64
 	p, n mgl64.Vec3
+	m    material
 }
 
 type hitable interface {
@@ -33,6 +34,7 @@ type hitable interface {
 type sphere struct {
 	c mgl64.Vec3
 	r float64
+	m material
 }
 
 func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
@@ -43,23 +45,26 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 
 	discriminant := b*b - a*c
 	if discriminant > 0 {
-		temp := (-b - math.Sqrt(b*b-a*c)) / a
+		bbac := math.Sqrt(b*b - a*c)
+		temp := (-b - bbac) / a
 		if temp < tMax && temp > tMin {
 			var rec hit
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
 			rec.n = rec.p.Sub(s.c)
 			rec.n = rec.n.Mul(1.0 / s.r)
+			rec.m = s.m
 			return true, rec
 		}
 
-		temp = (-b + math.Sqrt(b*b-a*c)) / a
+		temp = (-b + bbac) / a
 		if temp < tMax && temp > tMin {
 			var rec hit
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
 			rec.n = rec.p.Sub(s.c)
 			rec.n = rec.n.Mul(1.0 / s.r)
+			rec.m = s.m
 			return true, rec
 		}
 	}
@@ -91,23 +96,26 @@ func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 }
 
 func randomInUnitSphere() mgl64.Vec3 {
-	p := mgl64.Vec3{2.0 * rand.Float64(), 2.0 * rand.Float64(), 2.0 * rand.Float64()}
-	p = p.Sub(mgl64.Vec3{1.0, 1.0, 1.0})
+	p := mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
 	for p.Len()*p.Len() >= 1.0 {
-		p = mgl64.Vec3{2.0 * rand.Float64(), 2.0 * rand.Float64(), 2.0 * rand.Float64()}
-		p = p.Sub(mgl64.Vec3{1.0, 1.0, 1.0})
+		p = mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
 	}
 
 	return p
 }
 
-func retColor(r *ray, w *world) mgl64.Vec3 {
+func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 	if h, rec := w.calcHit(r, 0.001, math.MaxFloat64); h {
-		target := rec.p.Add(rec.n.Add(randomInUnitSphere()))
-		tmp := target.Sub(rec.p)
-		ret := retColor(&ray{&rec.p, &tmp}, w)
-		//return mgl64.Vec3{0.5 * (rec.n.X() + 1.0), 0.5 * (rec.n.Y() + 1.0), 0.5 * (rec.n.Z() + 1)}
-		return ret.Mul(0.5)
+		if decision, attenuation, scattered := rec.m.scatter(*r, rec); decision && depth < 50 {
+			tmp := retColor(scattered, w, depth+1)
+			return mgl64.Vec3{
+				attenuation.X() * tmp.X(),
+				attenuation.Y() * tmp.Y(),
+				attenuation.Z() * tmp.Z(),
+			}
+		}
+
+		return mgl64.Vec3{0.0, 0.0, 0.0}
 	}
 
 	uv := r.direction.Normalize()
@@ -141,7 +149,6 @@ func (vp *viewport) getRay(u, v float64) ray {
 const cTHREADS = 4
 
 func main() {
-
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage: %v <filename>\n", os.Args[0])
 		os.Exit(1)
@@ -149,12 +156,33 @@ func main() {
 
 	nx := 1280
 	ny := 640
-	ns := 50
+	ns := 200
 
 	vp := newVP()
 
 	w := &world{}
-	w.objs = append(w.objs, &sphere{r: 0.5, c: mgl64.Vec3{0.0, 0.0, -1.0}}, &sphere{r: 100, c: mgl64.Vec3{0.0, -100.5, -1.0}})
+	w.objs = append(w.objs,
+		&sphere{
+			r: 0.5,
+			c: mgl64.Vec3{0.0, 0.0, -1.0},
+			m: lambertian{&mgl64.Vec3{0.1, 0.2, 0.5}}},
+		&sphere{
+			r: 100,
+			c: mgl64.Vec3{0.0, -100.5, -1.0},
+			m: lambertian{&mgl64.Vec3{0.8, 0.8, 0.0}}},
+		&sphere{
+			r: 0.5,
+			c: mgl64.Vec3{1.0, 0.0, -1.0},
+			m: getMetal(mgl64.Vec3{0.8, 0.6, 0.2}, 0.3)},
+		&sphere{
+			r: 0.5,
+			c: mgl64.Vec3{-1.0, 0.0, -1.0},
+			m: dielectric{1.5}},
+		&sphere{
+			r: -0.45,
+			c: mgl64.Vec3{-1.0, 0.0, -1.0},
+			m: dielectric{1.5}},
+	)
 
 	img := image.NewRGBA(image.Rect(0, 0, 1280, 640))
 
@@ -170,12 +198,20 @@ func main() {
 					u := (float64(i) + rand.Float64()) / float64(nx)
 					v := (float64(j) + rand.Float64()) / float64(ny)
 					r := vp.getRay(u, v)
-					col = col.Add(retColor(&r, w))
+					col = col.Add(retColor(&r, w, 0))
 				}
 
 				col = col.Mul(1.0 / float64(ns))
-				col = mgl64.Vec3{math.Sqrt(col.X()) * 255.99, math.Sqrt(col.Y()) * 255.99, math.Sqrt(col.Z()) * 255.99}
-				img.Set(i, ny-j, color.RGBA{uint8(col.X()), uint8(col.Y()), uint8(col.Z()), 255})
+				col = mgl64.Vec3{
+					math.Sqrt(col.X()) * 255.99,
+					math.Sqrt(col.Y()) * 255.99,
+					math.Sqrt(col.Z()) * 255.99,
+				}
+				img.Set(i, ny-j, color.RGBA{
+					uint8(col.X()),
+					uint8(col.Y()),
+					uint8(col.Z()),
+					255})
 			}
 		}
 	}
