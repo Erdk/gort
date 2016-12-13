@@ -125,27 +125,6 @@ func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 	return ret.Add(tmp)
 }
 
-type viewport struct {
-	lowerLeftCorner, horizontal, vertical, origin mgl64.Vec3
-}
-
-func newVP() *viewport {
-	var vp viewport
-	vp.lowerLeftCorner = mgl64.Vec3{-2.0, -1.0, -1.0}
-	vp.horizontal = mgl64.Vec3{4.0, 0.0, 0.0}
-	vp.vertical = mgl64.Vec3{0.0, 2.0, 0.0}
-	vp.origin = mgl64.Vec3{0.0, 0.0, 0.0}
-
-	return &vp
-}
-
-func (vp *viewport) getRay(u, v float64) ray {
-	tmp := vp.lowerLeftCorner.Add(vp.horizontal.Mul(u))
-	tmp = tmp.Add(vp.vertical.Mul(v)) //+ v * vertical - origin
-	tmp = tmp.Add(vp.origin.Mul(-1))
-	return ray{origin: &vp.origin, direction: &tmp}
-}
-
 const cTHREADS = 4
 
 func main() {
@@ -158,7 +137,11 @@ func main() {
 	ny := 640
 	ns := 200
 
-	vp := newVP()
+	lookfrom := mgl64.Vec3{3.0, 3.0, 2.0}
+	lookat := mgl64.Vec3{0.0, 0.0, -1.0}
+	distToFocus := lookfrom.Add(lookat.Mul(-1.0)).Len()
+	aperture := 2.0
+	vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, 20.0, float64(nx)/float64(ny), aperture, distToFocus)
 
 	w := &world{}
 	w.objs = append(w.objs,
