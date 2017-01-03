@@ -128,15 +128,15 @@ func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 	return ret.Add(tmp)
 }
 
-func generateWorld() []hitable {
-	objs := make([]hitable, 500)
-	objs[0] = &sphere{
+func generateWorld(objs *[]hitable, i int) {
+	//objs := make([]hitable, 500)
+	(*objs)[i] = &sphere{
 		r: 1000.0,
 		c: mgl64.Vec3{0.0, -1000.0, 0.0},
 		m: lambertian{&mgl64.Vec3{0.5, 0.5, 0.5}},
 	}
 
-	i := 1
+	i++
 	for a := -11; a < 11; a++ {
 		for b := -11; b < 11; b++ {
 			chooseMat := rand.Float64()
@@ -148,7 +148,7 @@ func generateWorld() []hitable {
 			len := center.Sub(mgl64.Vec3{4.0, 0.2, 0.0}).Len()
 			if len > 0.9 {
 				if chooseMat < 0.8 { // diffuse
-					objs[i] = &sphere{
+					(*objs)[i] = &sphere{
 						r: 0.2,
 						c: center,
 						m: lambertian{
@@ -159,7 +159,7 @@ func generateWorld() []hitable {
 							}},
 					}
 				} else if chooseMat < 0.95 { // metal
-					objs[i] = &sphere{
+					(*objs)[i] = &sphere{
 						r: 0.2,
 						c: center,
 						m: getMetal(
@@ -170,7 +170,7 @@ func generateWorld() []hitable {
 							0.5*rand.Float64()),
 					}
 				} else { // glass
-					objs[i] = &sphere{
+					(*objs)[i] = &sphere{
 						r: 0.2,
 						c: center,
 						m: dielectric{1.5},
@@ -182,24 +182,23 @@ func generateWorld() []hitable {
 		}
 	}
 
-	objs[i] = &sphere{
+	(*objs)[i] = &sphere{
 		r: 1.0,
 		c: mgl64.Vec3{0.0, 1.0, 0.0},
 		m: dielectric{1.5}}
 	i++
-	objs[i] = &sphere{
+	(*objs)[i] = &sphere{
 		r: 1.0,
 		c: mgl64.Vec3{-4.0, 1.0, 0.0},
 		m: lambertian{&mgl64.Vec3{0.4, 0.2, 0.1}}}
 	i++
-	objs[i] = &sphere{
+	(*objs)[i] = &sphere{
 		r: 1.0,
 		c: mgl64.Vec3{4.0, 1.0, 0.0},
 		m: getMetal(mgl64.Vec3{0.7, 0.6, 0.5}, 0.0)}
-	return objs
 }
 
-const cTHREADS = 4
+const cTHREADS = 6
 
 func main() {
 	if len(os.Args) != 2 {
@@ -207,41 +206,43 @@ func main() {
 		os.Exit(1)
 	}
 
-	nx := 1280
-	ny := 640
+	nx := 1920
+	ny := 1080
 	ns := 200
 
-	lookfrom := mgl64.Vec3{3.0, 3.0, 2.0}
-	lookat := mgl64.Vec3{0.0, 0.0, -1.0}
-	distToFocus := lookfrom.Add(lookat.Mul(-1.0)).Len()
-	aperture := 2.0
+	lookfrom := mgl64.Vec3{13.0, 2.0, 3.0}
+	lookat := mgl64.Vec3{0.0, 0.0, 0.0}
+	distToFocus := 10.0
+	aperture := 0.1
 	vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, 20.0, float64(nx)/float64(ny), aperture, distToFocus)
 
 	w := &world{}
-	w.objs = generateWorld()
+	w.objs = make([]hitable, 500)
 
-	// w.objs = append(w.objs,
-	// 	&sphere{
-	// 		r: 0.5,
-	// 		c: mgl64.Vec3{0.0, 0.0, -1.0},
-	// 		m: lambertian{&mgl64.Vec3{0.1, 0.2, 0.5}}},
-	// 	&sphere{
-	// 		r: 100,
-	// 		c: mgl64.Vec3{0.0, -100.5, -1.0},
-	// 		m: lambertian{&mgl64.Vec3{0.8, 0.8, 0.0}}},
-	// 	&sphere{
-	// 		r: 0.5,
-	// 		c: mgl64.Vec3{1.0, 0.0, -1.0},
-	// 		m: getMetal(mgl64.Vec3{0.8, 0.6, 0.2}, 0.3)},
-	// 	&sphere{
-	// 		r: 0.5,
-	// 		c: mgl64.Vec3{-1.0, 0.0, -1.0},
-	// 		m: dielectric{1.5}},
-	// 	&sphere{
-	// 		r: -0.45,
-	// 		c: mgl64.Vec3{-1.0, 0.0, -1.0},
-	// 		m: dielectric{1.5}},
-	// )
+	w.objs = append(w.objs,
+		&sphere{
+			r: 0.5,
+			c: mgl64.Vec3{0.0, 0.0, -1.0},
+			m: lambertian{&mgl64.Vec3{0.1, 0.2, 0.5}}},
+		&sphere{
+			r: 100,
+			c: mgl64.Vec3{0.0, -100.5, -1.0},
+			m: lambertian{&mgl64.Vec3{0.8, 0.8, 0.0}}},
+		&sphere{
+			r: 0.5,
+			c: mgl64.Vec3{1.0, 0.0, -1.0},
+			m: getMetal(mgl64.Vec3{0.8, 0.6, 0.2}, 0.3)},
+		&sphere{
+			r: 0.5,
+			c: mgl64.Vec3{-1.0, 0.0, -1.0},
+			m: dielectric{1.5}},
+		&sphere{
+			r: -0.45,
+			c: mgl64.Vec3{-1.0, 0.0, -1.0},
+			m: dielectric{1.5}},
+	)
+
+	generateWorld(&w.objs, 5)
 
 	img := image.NewRGBA(image.Rect(0, 0, 1280, 640))
 
