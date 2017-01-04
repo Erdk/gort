@@ -10,6 +10,8 @@ import (
 	"os"
 	"sync"
 
+	"time"
+
 	"github.com/go-gl/mathgl/mgl64"
 )
 
@@ -206,6 +208,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	// seed random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// hardcoded image dimenssions
 	nx := 1920
 	ny := 1080
 	ns := 200
@@ -244,7 +250,7 @@ func main() {
 
 	generateWorld(&w.objs, 5)
 
-	img := image.NewRGBA(image.Rect(0, 0, 1280, 640))
+	img := image.NewRGBA(image.Rect(0, 0, nx, ny))
 
 	var wg sync.WaitGroup
 	wg.Add(cTHREADS)
@@ -253,7 +259,7 @@ func main() {
 		defer wg.Done()
 		for j := 0; j < ny; j++ {
 			for i := x1; i < x2; i++ {
-				fmt.Printf("Thread %v: x: %v y: %v\n", threadNum, i, j)
+				//fmt.Printf("Thread %v: x: %v y: %v\n", threadNum, i, j)
 				col := mgl64.Vec3{0.0, 0.0, 0.0}
 				for s := 0; s < ns; s++ {
 					u := (float64(i) + rand.Float64()) / float64(nx)
