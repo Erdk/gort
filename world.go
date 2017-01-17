@@ -6,6 +6,32 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
+type world struct {
+	objs []hitable
+}
+
+func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
+	var retRec hit
+	hitAnything := false
+	closestSoFar := tMax
+	for _, v := range w.objs {
+		if v == nil {
+			continue
+		}
+		if h, rec := v.calcHit(r, tMin, closestSoFar); h {
+			hitAnything = true
+			closestSoFar = rec.t
+			retRec = rec
+		}
+	}
+
+	if hitAnything {
+		return true, retRec
+	}
+
+	return false, hit{}
+}
+
 func generateWorld(w *world) {
 	w.objs = make([]hitable, 500)
 
