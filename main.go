@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -10,6 +11,8 @@ import (
 	"sync"
 
 	"time"
+
+	"encoding/json"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -28,7 +31,8 @@ var nx = flag.Int("w", 640, "width of rendered image")
 var ny = flag.Int("h", 480, "height of rendered image")
 var ns = flag.Int("s", 200, "samples per pixel")
 var nt = flag.Int("t", 2, "number of parallel threads")
-var output = flag.String("s", "output", "filename without extension")
+var output = flag.String("o", "output", "filename without extension")
+var saveraw = flag.Bool("j", false, "saves generated scene into <output>.json")
 
 func main() {
 	flag.Parse()
@@ -44,6 +48,15 @@ func main() {
 
 	w := &world{}
 	generateWorld(w)
+
+	if *saveraw {
+		raw, _ := json.Marshal(*w)
+		fd, _ := os.Create(*output + ".json")
+		defer fd.Close()
+		if _, err := fd.Write(raw); err != nil {
+			fmt.Printf("Cannot write raw json with scene: %s\n", err.Error())
+		}
+	}
 
 	img := image.NewRGBA(image.Rect(0, 0, *nx, *ny))
 
