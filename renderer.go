@@ -37,16 +37,16 @@ func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 	return ret.Add(tmp)
 }
 
-func computeXY(w *world, vp *viewport, nx, ny, ns, x, y int) mgl64.Vec3 {
+func computeXY(w *world, vp *viewport, x, y int) mgl64.Vec3 {
 	col := mgl64.Vec3{0.0, 0.0, 0.0}
-	for s := 0; s < ns; s++ {
-		u := (float64(x) + rand.Float64()) / float64(nx)
-		v := (float64(y) + rand.Float64()) / float64(ny)
+	for s := 0; s < *ns; s++ {
+		u := (float64(x) + rand.Float64()) / float64(*nx)
+		v := (float64(y) + rand.Float64()) / float64(*ny)
 		r := vp.getRay(u, v)
 		col = col.Add(retColor(&r, w, 0))
 	}
 
-	col = col.Mul(1.0 / float64(ns))
+	col = col.Mul(1.0 / float64(*ns))
 	col = mgl64.Vec3{
 		math.Sqrt(col.X()) * 255.99,
 		math.Sqrt(col.Y()) * 255.99,
