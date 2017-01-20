@@ -54,7 +54,7 @@ func main() {
 		defer wg.Done()
 		for j := 0; j < *ny; j++ {
 			for i := x1; i < x2; i++ {
-				col := computeXY(w, vp, *nx, *ny, *ns, i, j)
+				col := computeXY(w, vp, i, j)
 				img.Set(i, *ny-j, color.RGBA{
 					uint8(col.X()),
 					uint8(col.Y()),
