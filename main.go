@@ -32,7 +32,9 @@ var ny = flag.Int("h", 480, "height of rendered image")
 var ns = flag.Int("s", 200, "samples per pixel")
 var nt = flag.Int("t", 2, "number of parallel threads")
 var output = flag.String("o", "output", "filename without extension")
+var input = flag.String("i", "", "instead of generating world render one from file")
 var saveraw = flag.Bool("j", false, "saves generated scene into <output>.json")
+var profile = flag.Bool("p", false, "generate cpu and mem profile")
 
 func main() {
 	flag.Parse()
@@ -47,15 +49,35 @@ func main() {
 	vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, 20.0, float64(*nx)/float64(*ny), aperture, distToFocus)
 
 	w := &world{}
-	generateWorld(w)
 
-	if *saveraw {
-		raw, _ := json.Marshal(*w)
-		fd, _ := os.Create(*output + ".json")
+	if *input != "" {
+		fd, _ := os.Open(*input)
 		defer fd.Close()
-		if _, err := fd.Write(raw); err != nil {
-			fmt.Printf("Cannot write raw json with scene: %s\n", err.Error())
+		dec := json.NewDecoder(fd)
+		if err := dec.Decode(w); err != nil {
+			fmt.Printf("Cannot read scene: %s", err.Error())
+			os.Exit(1)
 		}
+	} else {
+		generateWorld(w)
+
+		if *saveraw {
+			raw, err := json.Marshal(*w)
+			if err != nil {
+				fmt.Printf("Cannot marshall scene: %s", err.Error())
+				os.Exit(1)
+			}
+
+			fd, _ := os.Create(*output + ".json")
+			defer fd.Close()
+			if _, err := fd.Write(raw); err != nil {
+				fmt.Printf("Cannot write raw json with scene: %s\n", err.Error())
+			}
+		}
+	}
+
+	if *profile {
+		// TODO: start profiling
 	}
 
 	img := image.NewRGBA(image.Rect(0, 0, *nx, *ny))
