@@ -12,11 +12,11 @@ type material interface {
 }
 
 type lambertian struct {
-	albedo *mgl64.Vec3
+	Albedo *mgl64.Vec3
 }
 
 func getLambertian(v mgl64.Vec3) lambertian {
-	return lambertian{albedo: &v}
+	return lambertian{Albedo: &v}
 }
 
 func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
@@ -25,7 +25,7 @@ func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	target := rec.p.Add(rec.n.Add(randomInUnitSphere()))
 	tmp := target.Sub(rec.p)
 	scattered = &ray{&rec.p, &tmp}
-	attenuation = l.albedo
+	attenuation = l.Albedo
 	decision = true
 
 	return
@@ -37,8 +37,8 @@ func reflectvec(v, n mgl64.Vec3) mgl64.Vec3 {
 }
 
 type metal struct {
-	albedo *mgl64.Vec3
-	fuzz   float64
+	Albedo *mgl64.Vec3
+	Fuzz   float64
 }
 
 func getMetal(v mgl64.Vec3, f float64) metal {
@@ -46,16 +46,16 @@ func getMetal(v mgl64.Vec3, f float64) metal {
 		f = 1.0
 	}
 
-	return metal{albedo: &v, fuzz: f}
+	return metal{Albedo: &v, Fuzz: f}
 }
 
 func (m metal) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
 	reflected := reflectvec(in.direction.Normalize(), rec.n)
 	tmp := randomInUnitSphere()
-	tmp = tmp.Mul(m.fuzz)
+	tmp = tmp.Mul(m.Fuzz)
 	reflected = reflected.Add(tmp)
 	scattered = &ray{&rec.p, &reflected}
-	attenuation = m.albedo
+	attenuation = m.Albedo
 	decision = scattered.direction.Dot(rec.n) > 0.0
 	return
 }
@@ -81,7 +81,7 @@ func schlick(cosine, refIdx float64) float64 {
 }
 
 type dielectric struct {
-	refIdx float64
+	RefIdx float64
 }
 
 func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
@@ -93,17 +93,17 @@ func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	var outwardNormal mgl64.Vec3
 	if in.direction.Dot(rec.n) > 0.0 {
 		outwardNormal = rec.n.Mul(-1.0)
-		niOverNt = d.refIdx
-		cosine = d.refIdx * in.direction.Dot(rec.n) / in.direction.Len()
+		niOverNt = d.RefIdx
+		cosine = d.RefIdx * in.direction.Dot(rec.n) / in.direction.Len()
 	} else {
 		outwardNormal = rec.n
-		niOverNt = 1.0 / d.refIdx
+		niOverNt = 1.0 / d.RefIdx
 		cosine = -1.0 * in.direction.Dot(rec.n) * in.direction.Len()
 	}
 
 	ifRefract, refracted := refract(*in.direction, outwardNormal, niOverNt)
 	if ifRefract {
-		reflectProbe = schlick(cosine, d.refIdx)
+		reflectProbe = schlick(cosine, d.RefIdx)
 	} else {
 		reflectProbe = 1.0
 	}
