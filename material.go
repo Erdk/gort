@@ -31,7 +31,7 @@ func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	return
 }
 
-func reflect(v, n mgl64.Vec3) mgl64.Vec3 {
+func reflectvec(v, n mgl64.Vec3) mgl64.Vec3 {
 	tmp := n.Mul(2.0 * v.Dot(n))
 	return v.Sub(tmp)
 }
@@ -50,7 +50,7 @@ func getMetal(v mgl64.Vec3, f float64) metal {
 }
 
 func (m metal) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	reflected := reflect(in.direction.Normalize(), rec.n)
+	reflected := reflectvec(in.direction.Normalize(), rec.n)
 	tmp := randomInUnitSphere()
 	tmp = tmp.Mul(m.fuzz)
 	reflected = reflected.Add(tmp)
@@ -85,7 +85,7 @@ type dielectric struct {
 }
 
 func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	reflected := reflect(*in.direction, rec.n)
+	reflected := reflectvec(*in.direction, rec.n)
 	attenuation = &mgl64.Vec3{1.0, 1.0, 1.0}
 	var niOverNt float64
 	var cosine float64
