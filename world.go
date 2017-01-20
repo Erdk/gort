@@ -34,38 +34,45 @@ func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 
 func generateWorld(w *world) {
 	w.objs = make([]hitable, 500)
+	i := 0
 
-	w.objs = append(w.objs,
-		&sphere{
-			r: 0.5,
-			c: mgl64.Vec3{0.0, 0.0, -1.0},
-			m: lambertian{&mgl64.Vec3{0.1, 0.2, 0.5}}},
-		&sphere{
-			r: 100,
-			c: mgl64.Vec3{0.0, -100.5, -1.0},
-			m: lambertian{&mgl64.Vec3{0.8, 0.8, 0.0}}},
-		&sphere{
-			r: 0.5,
-			c: mgl64.Vec3{1.0, 0.0, -1.0},
-			m: getMetal(mgl64.Vec3{0.8, 0.6, 0.2}, 0.3)},
-		&sphere{
-			r: 0.5,
-			c: mgl64.Vec3{-1.0, 0.0, -1.0},
-			m: dielectric{1.5}},
-		&sphere{
-			r: -0.45,
-			c: mgl64.Vec3{-1.0, 0.0, -1.0},
-			m: dielectric{1.5}},
-	)
+	w.objs[i] = &sphere{
+		r: 0.5,
+		c: mgl64.Vec3{0.0, 0.0, -1.0},
+		m: lambertian{&mgl64.Vec3{0.1, 0.2, 0.5}}}
+	i++
 
-	i := 5
+	w.objs[i] = &sphere{
+		r: 100,
+		c: mgl64.Vec3{0.0, -100.5, -1.0},
+		m: lambertian{&mgl64.Vec3{0.8, 0.8, 0.0}}}
+	i++
+
+	w.objs[i] = &sphere{
+		r: 0.5,
+		c: mgl64.Vec3{1.0, 0.0, -1.0},
+		m: getMetal(mgl64.Vec3{0.8, 0.6, 0.2}, 0.3)}
+	i++
+
+	w.objs[i] = &sphere{
+		r: 0.5,
+		c: mgl64.Vec3{-1.0, 0.0, -1.0},
+		m: dielectric{1.5}}
+	i++
+
+	w.objs[i] = &sphere{
+		r: -0.45,
+		c: mgl64.Vec3{-1.0, 0.0, -1.0},
+		m: dielectric{1.5}}
+	i++
+
 	w.objs[i] = &sphere{
 		r: 1000.0,
 		c: mgl64.Vec3{0.0, -1000.0, 0.0},
 		m: lambertian{&mgl64.Vec3{0.5, 0.5, 0.5}},
 	}
-
 	i++
+
 	for a := -11; a < 11; a++ {
 		for b := -11; b < 11; b++ {
 			chooseMat := rand.Float64()
