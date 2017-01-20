@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"math"
 	"math/rand"
 	"os"
 	"sync"
@@ -15,14 +14,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-type ray struct {
-	origin, direction *mgl64.Vec3
-}
-
-func (r *ray) pointAtParam(t float64) mgl64.Vec3 {
-	return r.origin.Add(r.direction.Mul(t))
-}
-
 type hit struct {
 	t    float64
 	p, n mgl64.Vec3
@@ -31,36 +22,6 @@ type hit struct {
 
 type hitable interface {
 	calcHit(r *ray, tMin, tMax float64) (bool, hit)
-}
-
-func randomInUnitSphere() mgl64.Vec3 {
-	p := mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
-	for p.Len()*p.Len() >= 1.0 {
-		p = mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
-	}
-
-	return p
-}
-
-func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
-	if h, rec := w.calcHit(r, 0.001, math.MaxFloat64); h {
-		if decision, attenuation, scattered := rec.m.scatter(*r, rec); decision && depth < 50 {
-			tmp := retColor(scattered, w, depth+1)
-			return mgl64.Vec3{
-				attenuation.X() * tmp.X(),
-				attenuation.Y() * tmp.Y(),
-				attenuation.Z() * tmp.Z(),
-			}
-		}
-
-		return mgl64.Vec3{0.0, 0.0, 0.0}
-	}
-
-	uv := r.direction.Normalize()
-	t := 0.5 * (uv.Y() + 1.0)
-	ret := mgl64.Vec3{1.0 - t, 1.0 - t, 1.0 - t}
-	tmp := mgl64.Vec3{0.5 * t, 0.7 * t, 1.0 * t}
-	return ret.Add(tmp)
 }
 
 const cTHREADS = 6
@@ -98,20 +59,7 @@ func main() {
 		for j := 0; j < ny; j++ {
 			for i := x1; i < x2; i++ {
 				//fmt.Printf("Thread %v: x: %v y: %v\n", threadNum, i, j)
-				col := mgl64.Vec3{0.0, 0.0, 0.0}
-				for s := 0; s < ns; s++ {
-					u := (float64(i) + rand.Float64()) / float64(nx)
-					v := (float64(j) + rand.Float64()) / float64(ny)
-					r := vp.getRay(u, v)
-					col = col.Add(retColor(&r, w, 0))
-				}
-
-				col = col.Mul(1.0 / float64(ns))
-				col = mgl64.Vec3{
-					math.Sqrt(col.X()) * 255.99,
-					math.Sqrt(col.Y()) * 255.99,
-					math.Sqrt(col.Z()) * 255.99,
-				}
+				col := computeXY(w, vp, nx, ny, ns, i, j)
 				img.Set(i, ny-j, color.RGBA{
 					uint8(col.X()),
 					uint8(col.Y()),
