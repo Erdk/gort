@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/pkg/profile"
 )
 
 type hit struct {
@@ -34,10 +35,20 @@ var nt = flag.Int("t", 2, "number of parallel threads")
 var output = flag.String("o", "output", "filename without extension")
 var input = flag.String("i", "", "instead of generating world render one from file")
 var saveraw = flag.Bool("j", false, "saves generated scene into <output>.json")
-var profile = flag.Bool("p", false, "generate cpu and mem profile")
+var prof = flag.String("prof", "", "generate cpu/mem/block profile, by default none")
 
 func main() {
 	flag.Parse()
+
+	switch *prof {
+	case "cpu":
+		defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
+	case "mem":
+		defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
+	case "block":
+		defer profile.Start(profile.BlockProfile, profile.ProfilePath(".")).Stop()
+	default:
+	}
 
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
@@ -74,10 +85,6 @@ func main() {
 				fmt.Printf("Cannot write raw json with scene: %s\n", err.Error())
 			}
 		}
-	}
-
-	if *profile {
-		// TODO: start profiling
 	}
 
 	img := image.NewRGBA(image.Rect(0, 0, *nx, *ny))
