@@ -28,3 +28,4 @@ gort.exe
 vendor
 *.png
 .vscode
+*.pprof
