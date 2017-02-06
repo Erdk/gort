@@ -84,9 +84,12 @@ func generateWorld(w *world) {
 			len := center.Sub(mgl64.Vec3{4.0, 0.2, 0.0}).Len()
 			if len > 0.9 {
 				if chooseMat < 0.8 { // diffuse
-					w.Objs[i] = &sphere{
-						Radius: 0.2,
-						Center: center,
+					w.Objs[i] = &movingSphere{
+						Radius:  0.2,
+						Center0: center,
+						Center1: center.Add(mgl64.Vec3{0.0, 0.5 * rand.Float64(), 0.0}),
+						Time0:   0.0,
+						Time1:   1.0,
 						Material: lambertian{
 							&mgl64.Vec3{
 								rand.Float64() * rand.Float64(),
