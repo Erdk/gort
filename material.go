@@ -24,7 +24,7 @@ func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	//scattered =ray(rec.p, target - rec.p)
 	target := rec.p.Add(rec.n.Add(randomInUnitSphere()))
 	tmp := target.Sub(rec.p)
-	scattered = &ray{&rec.p, &tmp}
+	scattered = &ray{&rec.p, &tmp, in.time}
 	attenuation = l.Albedo
 	decision = true
 
@@ -54,7 +54,7 @@ func (m metal) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3,
 	tmp := randomInUnitSphere()
 	tmp = tmp.Mul(m.Fuzz)
 	reflected = reflected.Add(tmp)
-	scattered = &ray{&rec.p, &reflected}
+	scattered = &ray{&rec.p, &reflected, in.time}
 	attenuation = m.Albedo
 	decision = scattered.direction.Dot(rec.n) > 0.0
 	return
@@ -109,9 +109,9 @@ func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	}
 
 	if rand.Float64() < reflectProbe {
-		scattered = &ray{&rec.p, &reflected}
+		scattered = &ray{&rec.p, &reflected, in.time}
 	} else {
-		scattered = &ray{&rec.p, &refracted}
+		scattered = &ray{&rec.p, &refracted, in.time}
 	}
 
 	decision = true
