@@ -6,6 +6,17 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
+type hit struct {
+	t    float64
+	p, n mgl64.Vec3
+	m    material
+}
+
+type hitable interface {
+	calcHit(r *ray, min, max float64) (bool, hit)
+	boundingBox(t0, t1 float64) (bool, aabb)
+}
+
 type sphere struct {
 	Center   mgl64.Vec3
 	Radius   float64
@@ -45,6 +56,10 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 	}
 
 	return false, hit{}
+}
+
+func (s *sphere) boundingBox(t0, ti float64) (bool, aabb) {
+	return true, aabb{s.Center.Sub(mgl64.Vec3{s.Radius, s.Radius, s.Radius}), s.Center.Add(mgl64.Vec3{s.Radius, s.Radius, s.Radius})}
 }
 
 type movingSphere struct {
@@ -89,6 +104,13 @@ func (m *movingSphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 	return false, hit{}
 }
 
+func (m *movingSphere) boundingBox(t0, ti float64) (bool, aabb) {
+	aabb0 := aabb{m.Center0.Sub(mgl64.Vec3{m.Radius, m.Radius, m.Radius}), m.Center0.Add(mgl64.Vec3{m.Radius, m.Radius, m.Radius})}
+	aabb1 := aabb{m.Center1.Sub(mgl64.Vec3{m.Radius, m.Radius, m.Radius}), m.Center1.Add(mgl64.Vec3{m.Radius, m.Radius, m.Radius})}
+
+	return true, surroundingBox(aabb0, aabb1)
+}
+
 // EPSILON constant for checking if two float numbers are the same
 const EPSILON = 0.0000001
 
@@ -101,4 +123,18 @@ func (m *movingSphere) center(time float64) mgl64.Vec3 {
 	}
 
 	return m.Center0
+}
+
+func surroundingBox(box0, box1 aabb) aabb {
+	small := mgl64.Vec3{
+		math.Min(box0.min.X(), box1.min.X()),
+		math.Min(box0.min.Y(), box1.min.Y()),
+		math.Min(box0.min.Z(), box1.min.Z()),
+	}
+	large := mgl64.Vec3{
+		math.Max(box0.max.X(), box1.max.X()),
+		math.Max(box0.max.Y(), box1.max.Y()),
+		math.Max(box0.max.Z(), box1.max.Z()),
+	}
+	return aabb{small, large}
 }

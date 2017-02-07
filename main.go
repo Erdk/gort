@@ -18,16 +18,6 @@ import (
 	"github.com/pkg/profile"
 )
 
-type hit struct {
-	t    float64
-	p, n mgl64.Vec3
-	m    material
-}
-
-type hitable interface {
-	calcHit(r *ray, tMin, tMax float64) (bool, hit)
-}
-
 var nx = flag.Int("w", 320, "width of rendered image")
 var ny = flag.Int("h", 240, "height of rendered image")
 var ns = flag.Int("s", 200, "samples per pixel")
