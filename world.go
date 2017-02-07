@@ -32,20 +32,47 @@ func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 	return false, hit{}
 }
 
+func (w *world) boundingBox(t0, t1 float64) (bool, aabb) {
+	if len(w.Objs) < 1 {
+		return false, aabb{}
+	}
+
+	firstTrue, tempBox := w.Objs[0].boundingBox(t0, t1)
+	if !firstTrue {
+		return false, tempBox
+	}
+	box := tempBox
+	for i := 1; i < len(w.Objs); i++ {
+		if w.Objs[i] == nil {
+			break
+		}
+		ok, tempBox := w.Objs[i].boundingBox(t0, t1)
+		if ok {
+			box = surroundingBox(box, tempBox)
+		} else {
+			return false, box
+		}
+	}
+
+	return true, box
+}
+
 func generateWorld(w *world) {
 	w.Objs = make([]hitable, 500)
 	i := 0
 
+	cTexture := checkerTexture{constantTexture{mgl64.Vec3{0.2, 0.3, 0.1}}, constantTexture{mgl64.Vec3{0.9, 0.9, 0.9}}}
+
 	w.Objs[i] = &sphere{
 		Radius:   0.5,
 		Center:   mgl64.Vec3{0.0, 0.0, -1.0},
-		Material: lambertian{&mgl64.Vec3{0.1, 0.2, 0.5}}}
+		Material: lambertian{constantTexture{mgl64.Vec3{0.1, 0.2, 0.5}}}}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   100,
 		Center:   mgl64.Vec3{0.0, -100.5, -1.0},
-		Material: lambertian{&mgl64.Vec3{0.8, 0.8, 0.0}}}
+		Material: lambertian{constantTexture{mgl64.Vec3{0.8, 0.8, 0.0}}}}
 	i++
 
 	w.Objs[i] = &sphere{
@@ -69,7 +96,7 @@ func generateWorld(w *world) {
 	w.Objs[i] = &sphere{
 		Radius:   1000.0,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: lambertian{&mgl64.Vec3{0.5, 0.5, 0.5}},
+		Material: lambertian{cTexture},
 	}
 	i++
 
@@ -91,11 +118,11 @@ func generateWorld(w *world) {
 						Time0:   0.0,
 						Time1:   1.0,
 						Material: lambertian{
-							&mgl64.Vec3{
+							constantTexture{mgl64.Vec3{
 								rand.Float64() * rand.Float64(),
 								rand.Float64() * rand.Float64(),
 								rand.Float64() * rand.Float64(),
-							}},
+							}}},
 					}
 				} else if chooseMat < 0.95 { // metal
 					w.Objs[i] = &sphere{
@@ -129,7 +156,7 @@ func generateWorld(w *world) {
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
 		Center:   mgl64.Vec3{-4.0, 1.0, 0.0},
-		Material: lambertian{&mgl64.Vec3{0.4, 0.2, 0.1}}}
+		Material: lambertian{constantTexture{mgl64.Vec3{0.4, 0.2, 0.1}}}}
 	i++
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
