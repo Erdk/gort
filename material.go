@@ -12,22 +12,19 @@ type material interface {
 }
 
 type lambertian struct {
-	Albedo *mgl64.Vec3
+	Albedo texture
 }
 
 func getLambertian(v mgl64.Vec3) lambertian {
-	return lambertian{Albedo: &v}
+	return lambertian{Albedo: constantTexture{v}}
 }
 
 func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	//vec3 target = rec.p + rec.normal + random_in_unit_sphere()
-	//scattered =ray(rec.p, target - rec.p)
 	target := rec.p.Add(rec.n.Add(randomInUnitSphere()))
 	tmp := target.Sub(rec.p)
 	scattered = &ray{&rec.p, &tmp, in.time}
-	attenuation = l.Albedo
+	attenuation = l.Albedo.value(0, 0, rec.p)
 	decision = true
-
 	return
 }
 
