@@ -57,6 +57,21 @@ func (w *world) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, box
 }
 
+func perlinTest(w *world) {
+	w.Objs = make([]hitable, 2)
+	perlinTex := noiseTexture{1.0}
+	w.Objs[0] = &sphere{
+		Radius:   1000,
+		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
+		Material: lambertian{perlinTex},
+	}
+	w.Objs[1] = &sphere{
+		Radius:   2.0,
+		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
+		Material: lambertian{perlinTex},
+	}
+}
+
 func generateWorld(w *world) {
 	w.Objs = make([]hitable, 500)
 	i := 0
