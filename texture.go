@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 
+	"github.com/Erdk/gort/perlin"
 	"github.com/go-gl/mathgl/mgl64"
 )
 
@@ -28,4 +29,13 @@ func (c checkerTexture) value(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 		return c.odd.value(u, v, p)
 	}
 	return c.even.value(u, v, p)
+}
+
+type noiseTexture struct {
+	scale float64
+}
+
+func (n noiseTexture) value(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+	a := mgl64.Vec3{1.0, 1.0, 1.0}.Mul(0.5 * (1.0 + math.Sin(n.scale*p.Z()+10.0*perlin.Turbulance(p))))
+	return &a
 }

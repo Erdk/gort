@@ -60,7 +60,8 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		generateWorld(w)
+		//generateWorld(w)
+		perlinTest(w)
 
 		if *saveraw {
 			raw, err := json.Marshal(*w)
