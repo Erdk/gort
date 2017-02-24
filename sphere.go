@@ -6,17 +6,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-type hit struct {
-	t    float64
-	p, n mgl64.Vec3
-	m    material
-}
-
-type hitable interface {
-	calcHit(r *ray, min, max float64) (bool, hit)
-	boundingBox(t0, t1 float64) (bool, aabb)
-}
-
 type sphere struct {
 	Center   mgl64.Vec3
 	Radius   float64
@@ -31,26 +20,27 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 
 	discriminant := b*b - a*c
 	if discriminant > 0 {
+		var rec hit
 		bbac := math.Sqrt(b*b - a*c)
 		temp := (-b - bbac) / a
 		if temp < tMax && temp > tMin {
-			var rec hit
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
 			rec.n = rec.p.Sub(s.Center)
 			rec.n = rec.n.Mul(1.0 / s.Radius)
 			rec.m = s.Material
+			rec.u, rec.v = getSphereUV(rec.p.Sub(s.Center).Mul(1.0 / s.Radius))
 			return true, rec
 		}
 
 		temp = (-b + bbac) / a
 		if temp < tMax && temp > tMin {
-			var rec hit
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
 			rec.n = rec.p.Sub(s.Center)
 			rec.n = rec.n.Mul(1.0 / s.Radius)
 			rec.m = s.Material
+			rec.u, rec.v = getSphereUV(rec.p.Sub(s.Center).Mul(1.0 / s.Radius))
 			return true, rec
 		}
 	}
@@ -60,6 +50,14 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 
 func (s *sphere) boundingBox(t0, ti float64) (bool, aabb) {
 	return true, aabb{s.Center.Sub(mgl64.Vec3{s.Radius, s.Radius, s.Radius}), s.Center.Add(mgl64.Vec3{s.Radius, s.Radius, s.Radius})}
+}
+
+func getSphereUV(p mgl64.Vec3) (u, v float64) {
+	phi := math.Atan2(p.Z(), p.X())
+	theta := math.Asin(p.Y())
+	u = 1.0 - (phi-math.Pi)/(2.0*math.Pi)
+	v = (theta + math.Pi/2.0) / math.Pi
+	return
 }
 
 type movingSphere struct {
