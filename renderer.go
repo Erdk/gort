@@ -18,23 +18,25 @@ func randomInUnitSphere() mgl64.Vec3 {
 
 func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 	if h, rec := w.calcHit(r, 0.001, math.MaxFloat64); h {
+		emit := rec.m.emit(rec.u, rec.v, rec.p)
 		if decision, attenuation, scattered := rec.m.scatter(*r, rec); decision && depth < 50 {
 			tmp := retColor(scattered, w, depth+1)
 			return mgl64.Vec3{
-				attenuation.X() * tmp.X(),
-				attenuation.Y() * tmp.Y(),
-				attenuation.Z() * tmp.Z(),
+				emit.X() + attenuation.X()*tmp.X(),
+				emit.Y() + attenuation.Y()*tmp.Y(),
+				emit.Z() + attenuation.Z()*tmp.Z(),
 			}
 		}
 
-		return mgl64.Vec3{0.0, 0.0, 0.0}
+		return *emit
 	}
+	return mgl64.Vec3{0.0, 0.0, 0.0}
 
-	uv := r.direction.Normalize()
-	t := 0.5 * (uv.Y() + 1.0)
-	ret := mgl64.Vec3{1.0 - t, 1.0 - t, 1.0 - t}
-	tmp := mgl64.Vec3{0.5 * t, 0.7 * t, 1.0 * t}
-	return ret.Add(tmp)
+	// uv := r.direction.Normalize()
+	// t := 0.5 * (uv.Y() + 1.0)
+	// ret := mgl64.Vec3{1.0 - t, 1.0 - t, 1.0 - t}
+	// tmp := mgl64.Vec3{0.5 * t, 0.7 * t, 1.0 * t}
+	// return ret.Add(tmp)
 }
 
 func computeXY(w *world, vp *viewport, x, y int) mgl64.Vec3 {

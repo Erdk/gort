@@ -9,6 +9,7 @@ import (
 
 type material interface {
 	scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray)
+	emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3
 }
 
 type lambertian struct {
@@ -26,6 +27,10 @@ func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	attenuation = l.Albedo.value(0, 0, rec.p)
 	decision = true
 	return
+}
+
+func (l lambertian) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+	return &mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
 func reflectvec(v, n mgl64.Vec3) mgl64.Vec3 {
@@ -55,6 +60,10 @@ func (m metal) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3,
 	attenuation = m.Albedo
 	decision = scattered.direction.Dot(rec.n) > 0.0
 	return
+}
+
+func (m metal) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+	return &mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
 func refract(v, n mgl64.Vec3, niOverNt float64) (bool, mgl64.Vec3) {
@@ -113,4 +122,20 @@ func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 
 	decision = true
 	return
+}
+
+func (d dielectric) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+	return &mgl64.Vec3{0.0, 0.0, 0.0}
+}
+
+type diffuseLight struct {
+	emitTexture texture
+}
+
+func (d diffuseLight) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+	return false, nil, nil
+}
+
+func (d diffuseLight) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+	return d.emitTexture.value(u, v, p)
 }
