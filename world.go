@@ -72,6 +72,41 @@ func perlinTest(w *world) {
 	}
 }
 
+func lightAndRectTest(w *world) {
+	w.Objs = make([]hitable, 4)
+	perlinTex := noiseTexture{4.0}
+	w.Objs[0] = &sphere{
+		Radius:   1000,
+		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
+		Material: lambertian{perlinTex},
+	}
+	w.Objs[1] = &sphere{
+		Radius:   2,
+		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
+		Material: lambertian{perlinTex},
+	}
+	w.Objs[2] = &sphere{
+		Radius:   2,
+		Center:   mgl64.Vec3{0.0, 7.0, 0.0},
+		Material: diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}},
+	}
+	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}}}
+}
+
+func cornellBox(w *world) {
+	w.Objs = make([]hitable, 6)
+	red := lambertian{constantTexture{mgl64.Vec3{0.65, 0.05, 0.05}}}
+	white := lambertian{constantTexture{mgl64.Vec3{0.73, 0.73, 0.73}}}
+	green := lambertian{constantTexture{mgl64.Vec3{0.12, 0.45, 0.15}}}
+	light := diffuseLight{constantTexture{mgl64.Vec3{15.0, 15.0, 15.0}}}
+	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
+	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
+	w.Objs[2] = &xzrect{213.0, 343.0, 227.0, 332.0, 554.0, light}
+	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
+	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+}
+
 func generateWorld(w *world) {
 	w.Objs = make([]hitable, 500)
 	i := 0

@@ -43,11 +43,18 @@ func main() {
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
-	lookfrom := mgl64.Vec3{13.0, 2.0, 3.0}
-	lookat := mgl64.Vec3{0.0, 0.0, 0.0}
+	// lookfrom := mgl64.Vec3{26.0, 2.0, 4.0}
+	// lookat := mgl64.Vec3{0.0, 4.0, 0.0}
+	// distToFocus := 10.0
+	// aperture := 0.0
+	// vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, 20.0, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
+
+	lookfrom := mgl64.Vec3{278.0, 278.0, -800}
+	lookat := mgl64.Vec3{278.0, 278.0, 0.0}
 	distToFocus := 10.0
 	aperture := 0.0
-	vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, 20.0, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
+	vfov := 40.0
+	vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
 
 	w := &world{}
 
@@ -61,7 +68,9 @@ func main() {
 		}
 	} else {
 		//generateWorld(w)
-		perlinTest(w)
+		//perlinTest(w)
+		//lightAndRectTest(w)
+		cornellBox(w)
 
 		if *saveraw {
 			raw, err := json.Marshal(*w)
