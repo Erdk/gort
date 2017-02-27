@@ -7,54 +7,15 @@ import (
 )
 
 type world struct {
-	Objs []hitable
+	Objs hitlist
 }
 
 func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
-	var retRec hit
-	hitAnything := false
-	closestSoFar := tMax
-	for _, v := range w.Objs {
-		if v == nil {
-			continue
-		}
-		if h, rec := v.calcHit(r, tMin, closestSoFar); h {
-			hitAnything = true
-			closestSoFar = rec.t
-			retRec = rec
-		}
-	}
-
-	if hitAnything {
-		return true, retRec
-	}
-
-	return false, hit{}
+	return w.Objs.calcHit(r, tMin, tMax)
 }
 
 func (w *world) boundingBox(t0, t1 float64) (bool, aabb) {
-	if len(w.Objs) < 1 {
-		return false, aabb{}
-	}
-
-	firstTrue, tempBox := w.Objs[0].boundingBox(t0, t1)
-	if !firstTrue {
-		return false, tempBox
-	}
-	box := tempBox
-	for i := 1; i < len(w.Objs); i++ {
-		if w.Objs[i] == nil {
-			break
-		}
-		ok, tempBox := w.Objs[i].boundingBox(t0, t1)
-		if ok {
-			box = surroundingBox(box, tempBox)
-		} else {
-			return false, box
-		}
-	}
-
-	return true, box
+	return w.Objs.boundingBox(t0, t1)
 }
 
 func perlinTest(w *world) {
@@ -94,7 +55,7 @@ func lightAndRectTest(w *world) {
 }
 
 func cornellBox(w *world) {
-	w.Objs = make([]hitable, 6)
+	w.Objs = make([]hitable, 8)
 	red := lambertian{constantTexture{mgl64.Vec3{0.65, 0.05, 0.05}}}
 	white := lambertian{constantTexture{mgl64.Vec3{0.73, 0.73, 0.73}}}
 	green := lambertian{constantTexture{mgl64.Vec3{0.12, 0.45, 0.15}}}
@@ -105,6 +66,12 @@ func cornellBox(w *world) {
 	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[6] = &translate{NewRotateY(
+		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 165.0, 165.0}, white), -18.0),
+		mgl64.Vec3{130.0, 0.0, 65.0}}
+	w.Objs[7] = &translate{NewRotateY(
+		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 330.0, 165.0}, white), 15.0),
+		mgl64.Vec3{265.0, 0.0, 295.0}}
 }
 
 func generateWorld(w *world) {
