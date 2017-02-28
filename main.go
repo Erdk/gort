@@ -26,6 +26,28 @@ var output = flag.String("o", "output", "filename without extension")
 var input = flag.String("i", "", "instead of generating world render one from file")
 var saveraw = flag.Bool("j", false, "saves generated scene into <output>.json")
 var prof = flag.String("prof", "", "generate cpu/mem/block profile, by default none")
+var progress = flag.Bool("p", false, "show progress, default false")
+
+type progressCounter struct {
+	counter, max, lastPrinted int
+	mtx                       *sync.Mutex
+}
+
+var progCounter *progressCounter
+
+func (p *progressCounter) incrementCounter() {
+	p.mtx.Lock()
+	p.counter++
+	newPrinted := int(float64(p.counter) / float64(p.max) * 100)
+	if newPrinted > p.lastPrinted {
+		p.lastPrinted = newPrinted
+		fmt.Printf(".")
+		if p.lastPrinted%10 == 0 {
+			fmt.Printf(" %d%% \n", p.lastPrinted)
+		}
+	}
+	p.mtx.Unlock()
+}
 
 func main() {
 	flag.Parse()
@@ -38,6 +60,14 @@ func main() {
 	case "block":
 		defer profile.Start(profile.BlockProfile, profile.ProfilePath(".")).Stop()
 	default:
+	}
+
+	if *progress {
+		progCounter := &progressCounter{}
+		progCounter.counter = 0
+		progCounter.max = *nx * *ny
+		progCounter.lastPrinted = 0
+		progCounter.mtx = &sync.Mutex{}
 	}
 
 	// seed random number generator
@@ -102,6 +132,7 @@ func main() {
 					uint8(col.Y()),
 					uint8(col.Z()),
 					255})
+				progCounter.incrementCounter()
 			}
 		}
 	}
