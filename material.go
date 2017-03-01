@@ -21,10 +21,9 @@ func getLambertian(v mgl64.Vec3) lambertian {
 }
 
 func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	target := rec.p.Add(rec.n.Add(randomInUnitSphere()))
-	tmp := target.Sub(rec.p)
-	scattered = &ray{&rec.p, &tmp, in.time}
-	attenuation = l.Albedo.value(0, 0, rec.p)
+	target := rec.n.Add(randomInUnitSphere())
+	scattered = &ray{&rec.p, &target, in.time}
+	attenuation = l.Albedo.value(rec.u, rec.v, rec.p)
 	decision = true
 	return
 }
