@@ -183,3 +183,75 @@ func generateWorld(w *world) {
 		Center:   mgl64.Vec3{4.0, 1.0, 0.0},
 		Material: getMetal(mgl64.Vec3{0.7, 0.6, 0.5}, 0.0)}
 }
+
+func generateWorld2(w *world) {
+	const nb = 20
+	l := 0
+	w.Objs = make([]hitable, 30)
+	white := getLambertian(mgl64.Vec3{0.73, 0.73, 0.73})
+	ground := getLambertian(mgl64.Vec3{0.48, 0.83, 0.53})
+	light := diffuseLight{constantTexture{mgl64.Vec3{7.0, 7.0, 7.0}}}
+
+	b := 0
+	boxlist := make([]hitable, nb*nb)
+	for i := 0; i < nb; i++ {
+		for j := 0; j < nb; j++ {
+			w := 100.0
+			x0 := -1000.0 + float64(i)*w
+			z0 := -1000.0 + float64(j)*w
+			y0 := 0.0
+			x1 := x0 + w
+			y1 := 100.0 * (rand.Float64() + 0.01)
+			z1 := z0 + w
+			boxlist[b] = NewBox(mgl64.Vec3{x0, y0, z0}, mgl64.Vec3{x1, y1, z1}, ground)
+			b = b + 1
+		}
+	}
+
+	w.Objs[l] = bvhNodeInit(boxlist, b, 0.0, 1.0)
+	l++
+
+	w.Objs[l] = &xzrect{123.0, 423.0, 147.0, 412.0, 554.0, light}
+	l++
+
+	center := mgl64.Vec3{400.0, 400.0, 400.0}
+
+	w.Objs[l] = &movingSphere{center, center.Add(mgl64.Vec3{30.0, 0.0, 0.0}), 0.0, 1.0, 50.0, getLambertian(mgl64.Vec3{0.7, 0.3, 0.1})}
+	l++
+
+	w.Objs[l] = &sphere{mgl64.Vec3{260.0, 150.0, 45.0}, 50.0, dielectric{1.5}}
+	l++
+
+	w.Objs[l] = &sphere{mgl64.Vec3{0.0, 150.0, 145.0}, 50.0, getMetal(mgl64.Vec3{0.8, 0.8, 0.9}, 10.0)}
+	l++
+
+	boundary := &sphere{mgl64.Vec3{360.0, 150.0, 145.0}, 70.0, dielectric{1.5}}
+	w.Objs[l] = boundary
+	l++
+
+	w.Objs[l] = &constantMedium{boundary, 0.2, isotropicMaterial{constantTexture{mgl64.Vec3{0.2, 0.4, 0.9}}}}
+	l++
+
+	boundary2 := &sphere{mgl64.Vec3{0.0, 0.0, 0.0}, 5000.0, dielectric{1.5}}
+	w.Objs[l] = &constantMedium{boundary2, 0.0001, isotropicMaterial{constantTexture{mgl64.Vec3{1.0, 1.0, 1.0}}}}
+	l++
+
+	texture, err := getImageTexture("static/earthmap.jpg")
+	if err != nil {
+		panic("CANNOT LOAD TEXTURE!")
+	}
+	textureMaterial := lambertian{texture}
+	w.Objs[l] = &sphere{mgl64.Vec3{400.0, 200.0, 400.0}, 100, textureMaterial}
+	l++
+
+	pertex := lambertian{noiseTexture{0.1}}
+	w.Objs[l] = &sphere{mgl64.Vec3{220.0, 280.0, 300.0}, 80.0, pertex}
+	l++
+
+	boxlist2 := make([]hitable, 1000)
+	for j := 0; j < 1000; j++ {
+		boxlist2[j] = &sphere{mgl64.Vec3{160.0 * rand.Float64(), 160.0 * rand.Float64(), 160.0 * rand.Float64()}, 10.0, white}
+	}
+
+	w.Objs[l] = translate{NewRotateY(bvhNodeInit(boxlist2, 1000, 0.0, 1.0), 15.0), mgl64.Vec3{-100.0, 270.0, 395.0}}
+}
