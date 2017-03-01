@@ -69,7 +69,7 @@ func (i imageTexture) value(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 		y = float64(i.ny)
 	}
 	r, g, b, _ := i.tex.At(int(x), int(y)).RGBA()
-	return &mgl64.Vec3{float64(r & 0xFF), float64(g & 0xFF), float64(b & 0xFF)}
+	return &mgl64.Vec3{float64(r&0xFF) / 255.0, float64(g&0xFF) / 255.0, float64(b&0xFF) / 255.0}
 }
 
 func getImageTexture(file string) (imageTexture, error) {
