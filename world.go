@@ -59,19 +59,22 @@ func cornellBox(w *world) {
 	red := lambertian{constantTexture{mgl64.Vec3{0.65, 0.05, 0.05}}}
 	white := lambertian{constantTexture{mgl64.Vec3{0.73, 0.73, 0.73}}}
 	green := lambertian{constantTexture{mgl64.Vec3{0.12, 0.45, 0.15}}}
-	light := diffuseLight{constantTexture{mgl64.Vec3{15.0, 15.0, 15.0}}}
+	light := diffuseLight{constantTexture{mgl64.Vec3{7.0, 7.0, 7.0}}}
 	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
-	w.Objs[2] = &xzrect{213.0, 343.0, 227.0, 332.0, 554.0, light}
+	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
 	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-	w.Objs[6] = &translate{NewRotateY(
+
+	b1 := &translate{NewRotateY(
 		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 165.0, 165.0}, white), -18.0),
 		mgl64.Vec3{130.0, 0.0, 65.0}}
-	w.Objs[7] = &translate{NewRotateY(
+	b2 := &translate{NewRotateY(
 		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 330.0, 165.0}, white), 15.0),
 		mgl64.Vec3{265.0, 0.0, 295.0}}
+	w.Objs[6] = &constantMedium{b1, 0.01, isotropicMaterial{constantTexture{mgl64.Vec3{1.0, 1.0, 1.0}}}}
+	w.Objs[7] = &constantMedium{b2, 0.01, isotropicMaterial{constantTexture{mgl64.Vec3{0.0, 0.0, 0.0}}}}
 }
 
 func generateWorld(w *world) {
