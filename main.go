@@ -129,12 +129,17 @@ func main() {
 		for j := 0; j < *ny; j++ {
 			for i := x1; i < x2; i++ {
 				col := computeXY(w, vp, i, j)
+				// if col.X() < 0.0 || col.X() > 255.0 || col.Y() < 0.0 || col.Y() > 255.0 || col.Z() < 0.0 || col.Z() > 255.0 {
+				// 	fmt.Printf("WRONG COLOUR! %f %f %f", col.X(), col.Y(), col.Z())
+				// }
 				img.Set(i, *ny-j, color.RGBA{
 					uint8(col.X()),
 					uint8(col.Y()),
 					uint8(col.Z()),
 					255})
-				progCounter.incrementCounter()
+				if *progress {
+					progCounter.incrementCounter()
+				}
 			}
 		}
 	}
@@ -148,4 +153,7 @@ func main() {
 
 	wg.Wait()
 	png.Encode(fd, img)
+	if *progress {
+		fmt.Printf("\n")
+	}
 }
