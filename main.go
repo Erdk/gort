@@ -14,6 +14,8 @@ import (
 
 	"encoding/json"
 
+	"runtime"
+
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/pkg/profile"
 )
@@ -63,7 +65,7 @@ func main() {
 	}
 
 	if *progress {
-		progCounter := &progressCounter{}
+		progCounter = &progressCounter{}
 		progCounter.counter = 0
 		progCounter.max = *nx * *ny
 		progCounter.lastPrinted = 0
@@ -120,6 +122,9 @@ func main() {
 	img := image.NewRGBA(image.Rect(0, 0, *nx, *ny))
 
 	var wg sync.WaitGroup
+	if *nt == 0 {
+		*nt = runtime.NumCPU()
+	}
 	wg.Add(*nt)
 
 	f := func(threadNum, x1, x2 int) {
