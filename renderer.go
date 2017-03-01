@@ -9,6 +9,7 @@ import (
 
 func randomInUnitSphere() mgl64.Vec3 {
 	p := mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
+
 	for p.Len()*p.Len() >= 1.0 {
 		p = mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
 	}
@@ -31,12 +32,6 @@ func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 		return *emit
 	}
 	return mgl64.Vec3{0.0, 0.0, 0.0}
-
-	// uv := r.direction.Normalize()
-	// t := 0.5 * (uv.Y() + 1.0)
-	// ret := mgl64.Vec3{1.0 - t, 1.0 - t, 1.0 - t}
-	// tmp := mgl64.Vec3{0.5 * t, 0.7 * t, 1.0 * t}
-	// return ret.Add(tmp)
 }
 
 func computeXY(w *world, vp *viewport, x, y int) mgl64.Vec3 {
@@ -55,5 +50,15 @@ func computeXY(w *world, vp *viewport, x, y int) mgl64.Vec3 {
 		math.Sqrt(col.Z()) * 255.99,
 	}
 
+	// "normalize" colours
+	for i := range col {
+		if col[i] > 255.0 {
+			col[i] = 255.0
+		}
+
+		if col[i] < 0.0 {
+			col[i] = 0.0
+		}
+	}
 	return col
 }
