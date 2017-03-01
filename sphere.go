@@ -29,7 +29,7 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 			rec.n = rec.p.Sub(s.Center)
 			rec.n = rec.n.Mul(1.0 / s.Radius)
 			rec.m = s.Material
-			rec.u, rec.v = getSphereUV(rec.p.Sub(s.Center).Mul(1.0 / s.Radius))
+			rec.u, rec.v = getSphereUV((rec.p.Sub(s.Center)).Mul(1.0 / s.Radius))
 			return true, rec
 		}
 
@@ -40,7 +40,7 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 			rec.n = rec.p.Sub(s.Center)
 			rec.n = rec.n.Mul(1.0 / s.Radius)
 			rec.m = s.Material
-			rec.u, rec.v = getSphereUV(rec.p.Sub(s.Center).Mul(1.0 / s.Radius))
+			rec.u, rec.v = getSphereUV((rec.p.Sub(s.Center)).Mul(1.0 / s.Radius))
 			return true, rec
 		}
 	}
@@ -53,9 +53,9 @@ func (s *sphere) boundingBox(t0, ti float64) (bool, aabb) {
 }
 
 func getSphereUV(p mgl64.Vec3) (u, v float64) {
-	phi := math.Atan2(p.Z(), p.X())
-	theta := math.Asin(p.Y())
-	u = 1.0 - (phi-math.Pi)/(2.0*math.Pi)
+	phi := math.Atan2(p.Y(), p.X())
+	theta := math.Asin(p.Z())
+	u = 1.0 - (phi+math.Pi)/(2.0*math.Pi)
 	v = (theta + math.Pi/2.0) / math.Pi
 	return
 }
