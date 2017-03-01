@@ -43,10 +43,7 @@ func (p *progressCounter) incrementCounter() {
 	newPrinted := int(float64(p.counter) / float64(p.max) * 100)
 	if newPrinted > p.lastPrinted {
 		p.lastPrinted = newPrinted
-		fmt.Printf(".")
-		if p.lastPrinted%10 == 0 {
-			fmt.Printf(" %d%% \n", p.lastPrinted)
-		}
+		fmt.Printf("\r%d%%", p.lastPrinted)
 	}
 	p.mtx.Unlock()
 }
