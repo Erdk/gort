@@ -99,8 +99,8 @@ func main() {
 		//generateWorld(w)
 		//perlinTest(w)
 		//lightAndRectTest(w)
-		//cornellBox(w)
-		generateWorld2(w)
+		cornellBox(w)
+		//generateWorld2(w)
 
 		if *saveraw {
 			raw, err := json.Marshal(*w)
