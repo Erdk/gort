@@ -8,7 +8,7 @@ import (
 )
 
 type material interface {
-	scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray)
+	scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray)
 	emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3
 }
 
@@ -16,19 +16,19 @@ type lambertian struct {
 	Albedo texture
 }
 
-func getLambertian(v mgl64.Vec3) lambertian {
-	return lambertian{Albedo: constantTexture{v}}
+func getLambertian(v mgl64.Vec3) *lambertian {
+	return &lambertian{Albedo: constantTexture{v}}
 }
 
-func (l lambertian) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	target := rec.n.Add(randomInUnitSphere())
+func (l *lambertian) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+	target := rec.n.Add(randomInUnitSphere(randSource))
 	scattered = &ray{&rec.p, &target, in.time}
 	attenuation = l.Albedo.value(rec.u, rec.v, rec.p)
 	decision = true
 	return
 }
 
-func (l lambertian) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+func (l *lambertian) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 	return &mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
@@ -42,17 +42,17 @@ type metal struct {
 	Fuzz   float64
 }
 
-func getMetal(v mgl64.Vec3, f float64) metal {
+func getMetal(v mgl64.Vec3, f float64) *metal {
 	if f >= 1.0 {
 		f = 1.0
 	}
 
-	return metal{Albedo: &v, Fuzz: f}
+	return &metal{Albedo: &v, Fuzz: f}
 }
 
-func (m metal) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+func (m *metal) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
 	reflected := reflectvec(in.direction.Normalize(), rec.n)
-	tmp := randomInUnitSphere()
+	tmp := randomInUnitSphere(randSource)
 	tmp = tmp.Mul(m.Fuzz)
 	reflected = reflected.Add(tmp)
 	scattered = &ray{&rec.p, &reflected, in.time}
@@ -61,7 +61,7 @@ func (m metal) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3,
 	return
 }
 
-func (m metal) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+func (m *metal) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 	return &mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
@@ -89,7 +89,7 @@ type dielectric struct {
 	RefIdx float64
 }
 
-func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+func (d *dielectric) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
 	reflected := reflectvec(*in.direction, rec.n)
 	attenuation = &mgl64.Vec3{1.0, 1.0, 1.0}
 	var niOverNt float64
@@ -113,7 +113,7 @@ func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 		reflectProbe = 1.0
 	}
 
-	if rand.Float64() < reflectProbe {
+	if randSource.Float64() < reflectProbe {
 		scattered = &ray{&rec.p, &reflected, in.time}
 	} else {
 		scattered = &ray{&rec.p, &refracted, in.time}
@@ -123,7 +123,7 @@ func (d dielectric) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.
 	return
 }
 
-func (d dielectric) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+func (d *dielectric) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 	return &mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
@@ -131,10 +131,10 @@ type diffuseLight struct {
 	emitTexture texture
 }
 
-func (d diffuseLight) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+func (d *diffuseLight) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
 	return false, nil, nil
 }
 
-func (d diffuseLight) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+func (d *diffuseLight) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 	return d.emitTexture.value(u, v, p)
 }

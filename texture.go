@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"math/rand"
 	"os"
 
 	"path/filepath"
@@ -49,27 +50,28 @@ func (n noiseTexture) value(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 }
 
 type imageTexture struct {
-	nx, ny int
-	tex    image.Image
+	minx, miny int
+	maxx, maxy int
+	tex        image.Image
 }
 
 func (i imageTexture) value(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
-	x := u * float64(i.nx)
-	y := (1.0-v)*float64(i.ny) - 0.001
-	if x < 0.0 {
-		x = 0.0
+	x := u*float64(i.maxx-i.minx) + float64(i.minx)
+	y := (1.0-v)*float64(i.maxy-i.miny) + float64(i.minx) - 0.001
+	if x < float64(i.minx) {
+		x = float64(i.minx)
 	}
-	if x > float64(i.nx) {
-		x = float64(i.nx)
+	if x > float64(i.maxx-1.0) {
+		x = float64(i.maxx - 1.0)
 	}
-	if y < 0.0 {
-		y = 0.0
+	if y < float64(i.miny) {
+		y = float64(i.miny)
 	}
-	if y > float64(i.ny) {
-		y = float64(i.ny)
+	if y > float64(i.maxy-1.0) {
+		y = float64(i.maxy - 1.0)
 	}
 	r, g, b, _ := i.tex.At(int(x), int(y)).RGBA()
-	return &mgl64.Vec3{float64(r&0xFF) / 255.0, float64(g&0xFF) / 255.0, float64(b&0xFF) / 255.0}
+	return &mgl64.Vec3{float64(r/0x101) / 255.0, float64(g/0x101) / 255.0, float64(b/0x101) / 255.0}
 }
 
 func getImageTexture(file string) (imageTexture, error) {
@@ -95,8 +97,10 @@ func getImageTexture(file string) (imageTexture, error) {
 	}
 
 	bounds := iT.tex.Bounds()
-	iT.nx = bounds.Max.X
-	iT.ny = bounds.Max.Y
+	iT.minx = bounds.Min.X
+	iT.maxx = bounds.Max.X
+	iT.miny = bounds.Min.Y
+	iT.maxy = bounds.Max.Y
 
 	return iT, nil
 }
@@ -105,8 +109,8 @@ type isotropicMaterial struct {
 	albedo texture
 }
 
-func (i isotropicMaterial) scatter(in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	randVec := randomInUnitSphere()
+func (i isotropicMaterial) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+	randVec := randomInUnitSphere(randSource)
 	scattered = &ray{&rec.p, &randVec, 0.0}
 	attenuation = i.albedo.value(rec.u, rec.v, rec.p)
 
