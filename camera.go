@@ -17,10 +17,10 @@ type viewport struct {
 	time0, time1    float64
 }
 
-func randomInUnitDisk() mgl64.Vec3 {
-	p := mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 0.0}
+func randomInUnitDisk(randSource *rand.Rand) mgl64.Vec3 {
+	p := mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 0.0}
 	for p.Dot(p) >= 1.0 {
-		p = mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 0.0}
+		p = mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 0.0}
 	}
 
 	return p
@@ -50,8 +50,8 @@ func newVP(lookfrom, lookat, vup mgl64.Vec3, vfov, aspect, aperture, focusDist, 
 	return &vp
 }
 
-func (vp *viewport) getRay(s, t float64) ray {
-	rd := randomInUnitDisk()
+func (vp *viewport) getRay(randSource *rand.Rand, s, t float64) ray {
+	rd := randomInUnitDisk(randSource)
 	rd = rd.Mul(vp.lensRadius)
 	offset := vp.u.Mul(rd.X())
 	offset = offset.Add(vp.v.Mul(rd.Y()))
@@ -62,6 +62,6 @@ func (vp *viewport) getRay(s, t float64) ray {
 	rayDir = rayDir.Add(vp.vertical.Mul(t)) //+ v * vertical - origin
 	rayDir = rayDir.Add(vp.origin.Mul(-1.0))
 	rayDir = rayDir.Add(offset.Mul(-1.0))
-	rayTime := vp.time0 + rand.Float64()*(vp.time1-vp.time0)
+	rayTime := vp.time0 + randSource.Float64()*(vp.time1-vp.time0)
 	return ray{&rayOri, &rayDir, rayTime}
 }

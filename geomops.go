@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -11,11 +12,11 @@ type translate struct {
 	Offset mgl64.Vec3
 }
 
-func (t translate) calcHit(r *ray, min, max float64) (bool, hit) {
+func (t translate) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	movedOrigin := r.origin.Sub(t.Offset)
 	movedRay := ray{&movedOrigin, r.direction, r.time}
 
-	if decision, hit := t.Objs.calcHit(&movedRay, min, max); decision {
+	if decision, hit := t.Objs.calcHit(randSource, &movedRay, min, max); decision {
 		hit.p = hit.p.Add(t.Offset)
 		return true, hit
 	}
@@ -74,7 +75,7 @@ func NewRotateY(obj hitable, angle float64) rotateY {
 	return ry
 }
 
-func (ry rotateY) calcHit(r *ray, min, max float64) (bool, hit) {
+func (ry rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	origin := *r.origin
 	direction := *r.direction
 	origin[0] = ry.CosTheta*r.origin[0] - ry.SinTheta*r.origin[2]
@@ -82,7 +83,7 @@ func (ry rotateY) calcHit(r *ray, min, max float64) (bool, hit) {
 	direction[0] = ry.CosTheta*r.direction[0] - ry.SinTheta*r.direction[2]
 	direction[2] = ry.SinTheta*r.direction[0] + ry.CosTheta*r.direction[2]
 	rotatedRay := ray{&origin, &direction, r.time}
-	if decision, rec := ry.Obj.calcHit(&rotatedRay, min, max); decision {
+	if decision, rec := ry.Obj.calcHit(randSource, &rotatedRay, min, max); decision {
 		p := rec.p
 		n := rec.n
 		p[0] = ry.CosTheta*rec.p[0] + ry.SinTheta*rec.p[2]
