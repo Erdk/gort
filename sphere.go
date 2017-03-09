@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -12,7 +13,7 @@ type sphere struct {
 	Material material
 }
 
-func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
+func (s *sphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {
 	oc := r.origin.Sub(s.Center)
 	a := r.direction.Dot(*r.direction)
 	b := oc.Dot(*r.direction)
@@ -30,6 +31,7 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 			rec.n = rec.n.Mul(1.0 / s.Radius)
 			rec.m = s.Material
 			rec.u, rec.v = getSphereUV((rec.p.Sub(s.Center)).Mul(1.0 / s.Radius))
+			//fmt.Printf("sphere u: %v v: %v\n", rec.u, rec.v)
 			return true, rec
 		}
 
@@ -41,6 +43,7 @@ func (s *sphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
 			rec.n = rec.n.Mul(1.0 / s.Radius)
 			rec.m = s.Material
 			rec.u, rec.v = getSphereUV((rec.p.Sub(s.Center)).Mul(1.0 / s.Radius))
+			//fmt.Printf("sphere u: %v v: %v\n", rec.u, rec.v)
 			return true, rec
 		}
 	}
@@ -53,8 +56,8 @@ func (s *sphere) boundingBox(t0, ti float64) (bool, aabb) {
 }
 
 func getSphereUV(p mgl64.Vec3) (u, v float64) {
-	phi := math.Atan2(p.Y(), p.X())
-	theta := math.Asin(p.Z())
+	phi := math.Atan2(p.Z(), p.X())
+	theta := math.Asin(p.Y())
 	u = 1.0 - (phi+math.Pi)/(2.0*math.Pi)
 	v = (theta + math.Pi/2.0) / math.Pi
 	return
@@ -67,7 +70,7 @@ type movingSphere struct {
 	Material         material
 }
 
-func (m *movingSphere) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
+func (m *movingSphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {
 	oc := r.origin.Sub(m.center(r.time))
 	a := r.direction.Dot(*r.direction)
 	b := oc.Dot(*r.direction)

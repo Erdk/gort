@@ -10,8 +10,8 @@ type world struct {
 	Objs hitlist
 }
 
-func (w *world) calcHit(r *ray, tMin, tMax float64) (bool, hit) {
-	return w.Objs.calcHit(r, tMin, tMax)
+func (w *world) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {
+	return w.Objs.calcHit(randSource, r, tMin, tMax)
 }
 
 func (w *world) boundingBox(t0, t1 float64) (bool, aabb) {
@@ -24,12 +24,12 @@ func perlinTest(w *world) {
 	w.Objs[0] = &sphere{
 		Radius:   1000,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: lambertian{perlinTex},
+		Material: &lambertian{perlinTex},
 	}
 	w.Objs[1] = &sphere{
 		Radius:   2.0,
 		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
-		Material: lambertian{perlinTex},
+		Material: &lambertian{perlinTex},
 	}
 }
 
@@ -39,27 +39,27 @@ func lightAndRectTest(w *world) {
 	w.Objs[0] = &sphere{
 		Radius:   1000,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: lambertian{perlinTex},
+		Material: &lambertian{perlinTex},
 	}
 	w.Objs[1] = &sphere{
 		Radius:   2,
 		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
-		Material: lambertian{perlinTex},
+		Material: &lambertian{perlinTex},
 	}
 	w.Objs[2] = &sphere{
 		Radius:   2,
 		Center:   mgl64.Vec3{0.0, 7.0, 0.0},
-		Material: diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}},
+		Material: &diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}},
 	}
-	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}}}
+	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, &diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}}}
 }
 
 func cornellBox(w *world) {
 	w.Objs = make([]hitable, 8)
-	red := lambertian{constantTexture{mgl64.Vec3{0.65, 0.05, 0.05}}}
-	white := lambertian{constantTexture{mgl64.Vec3{0.73, 0.73, 0.73}}}
-	green := lambertian{constantTexture{mgl64.Vec3{0.12, 0.45, 0.15}}}
-	light := diffuseLight{constantTexture{mgl64.Vec3{7.0, 7.0, 7.0}}}
+	red := &lambertian{constantTexture{mgl64.Vec3{0.65, 0.05, 0.05}}}
+	white := &lambertian{constantTexture{mgl64.Vec3{0.73, 0.73, 0.73}}}
+	green := &lambertian{constantTexture{mgl64.Vec3{0.12, 0.45, 0.15}}}
+	light := &diffuseLight{constantTexture{mgl64.Vec3{7.0, 7.0, 7.0}}}
 	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
 	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
@@ -77,6 +77,28 @@ func cornellBox(w *world) {
 	w.Objs[7] = &constantMedium{b2, 0.01, isotropicMaterial{constantTexture{mgl64.Vec3{0.0, 0.0, 0.0}}}}
 }
 
+func testTexture(w *world) {
+	w.Objs = make([]hitable, 7)
+
+	red := &lambertian{constantTexture{mgl64.Vec3{0.65, 0.05, 0.05}}}
+	white := &lambertian{constantTexture{mgl64.Vec3{0.73, 0.73, 0.73}}}
+	green := &lambertian{constantTexture{mgl64.Vec3{0.12, 0.45, 0.15}}}
+	light := &diffuseLight{constantTexture{mgl64.Vec3{4.0, 4.0, 4.0}}}
+	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
+	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
+	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
+	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
+
+	texture, err := getImageTexture("static/earthmap.jpg")
+	if err != nil {
+		panic("CANNOT LOAD TEXTURE!")
+	}
+	textureMaterial := lambertian{texture}
+	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[6] = &sphere{mgl64.Vec3{275.0, 275.0, 275.0}, 100, &textureMaterial}
+}
+
 func generateWorld(w *world) {
 	w.Objs = make([]hitable, 500)
 	i := 0
@@ -86,13 +108,13 @@ func generateWorld(w *world) {
 	w.Objs[i] = &sphere{
 		Radius:   0.5,
 		Center:   mgl64.Vec3{0.0, 0.0, -1.0},
-		Material: lambertian{constantTexture{mgl64.Vec3{0.1, 0.2, 0.5}}}}
+		Material: &lambertian{constantTexture{mgl64.Vec3{0.1, 0.2, 0.5}}}}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   100,
 		Center:   mgl64.Vec3{0.0, -100.5, -1.0},
-		Material: lambertian{constantTexture{mgl64.Vec3{0.8, 0.8, 0.0}}}}
+		Material: getLambertian(mgl64.Vec3{0.8, 0.8, 0.0})}
 	i++
 
 	w.Objs[i] = &sphere{
@@ -104,19 +126,19 @@ func generateWorld(w *world) {
 	w.Objs[i] = &sphere{
 		Radius:   0.5,
 		Center:   mgl64.Vec3{-1.0, 0.0, -1.0},
-		Material: dielectric{1.5}}
+		Material: &dielectric{1.5}}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   -0.45,
 		Center:   mgl64.Vec3{-1.0, 0.0, -1.0},
-		Material: dielectric{1.5}}
+		Material: &dielectric{1.5}}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   1000.0,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: lambertian{cTexture},
+		Material: &lambertian{cTexture},
 	}
 	i++
 
@@ -137,12 +159,12 @@ func generateWorld(w *world) {
 						Center1: center.Add(mgl64.Vec3{0.0, 0.5 * rand.Float64(), 0.0}),
 						Time0:   0.0,
 						Time1:   1.0,
-						Material: lambertian{
-							constantTexture{mgl64.Vec3{
+						Material: getLambertian(
+							mgl64.Vec3{
 								rand.Float64() * rand.Float64(),
 								rand.Float64() * rand.Float64(),
 								rand.Float64() * rand.Float64(),
-							}}},
+							}),
 					}
 				} else if chooseMat < 0.95 { // metal
 					w.Objs[i] = &sphere{
@@ -159,7 +181,7 @@ func generateWorld(w *world) {
 					w.Objs[i] = &sphere{
 						Radius:   0.2,
 						Center:   center,
-						Material: dielectric{1.5},
+						Material: &dielectric{1.5},
 					}
 				}
 
@@ -171,12 +193,12 @@ func generateWorld(w *world) {
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
 		Center:   mgl64.Vec3{0.0, 1.0, 0.0},
-		Material: dielectric{1.5}}
+		Material: &dielectric{1.5}}
 	i++
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
 		Center:   mgl64.Vec3{-4.0, 1.0, 0.0},
-		Material: lambertian{constantTexture{mgl64.Vec3{0.4, 0.2, 0.1}}}}
+		Material: getLambertian(mgl64.Vec3{0.4, 0.2, 0.1})}
 	i++
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
@@ -211,7 +233,7 @@ func generateWorld2(w *world) {
 	w.Objs[l] = bvhNodeInit(boxlist, b, 0.0, 1.0)
 	l++
 
-	w.Objs[l] = &xzrect{123.0, 423.0, 147.0, 412.0, 554.0, light}
+	w.Objs[l] = &xzrect{123.0, 423.0, 147.0, 412.0, 554.0, &light}
 	l++
 
 	center := mgl64.Vec3{400.0, 400.0, 400.0}
@@ -219,20 +241,20 @@ func generateWorld2(w *world) {
 	w.Objs[l] = &movingSphere{center, center.Add(mgl64.Vec3{30.0, 0.0, 0.0}), 0.0, 1.0, 50.0, getLambertian(mgl64.Vec3{0.7, 0.3, 0.1})}
 	l++
 
-	w.Objs[l] = &sphere{mgl64.Vec3{260.0, 150.0, 45.0}, 50.0, dielectric{1.5}}
+	w.Objs[l] = &sphere{mgl64.Vec3{260.0, 150.0, 45.0}, 50.0, &dielectric{1.5}}
 	l++
 
 	w.Objs[l] = &sphere{mgl64.Vec3{0.0, 150.0, 145.0}, 50.0, getMetal(mgl64.Vec3{0.8, 0.8, 0.9}, 10.0)}
 	l++
 
-	boundary := &sphere{mgl64.Vec3{360.0, 150.0, 145.0}, 70.0, dielectric{1.5}}
+	boundary := &sphere{mgl64.Vec3{360.0, 150.0, 145.0}, 70.0, &dielectric{1.5}}
 	w.Objs[l] = boundary
 	l++
 
 	w.Objs[l] = &constantMedium{boundary, 0.2, isotropicMaterial{constantTexture{mgl64.Vec3{0.2, 0.4, 0.9}}}}
 	l++
 
-	boundary2 := &sphere{mgl64.Vec3{0.0, 0.0, 0.0}, 5000.0, dielectric{1.5}}
+	boundary2 := &sphere{mgl64.Vec3{0.0, 0.0, 0.0}, 5000.0, &dielectric{1.5}}
 	w.Objs[l] = &constantMedium{boundary2, 0.0001, isotropicMaterial{constantTexture{mgl64.Vec3{1.0, 1.0, 1.0}}}}
 	l++
 
@@ -241,11 +263,11 @@ func generateWorld2(w *world) {
 		panic("CANNOT LOAD TEXTURE!")
 	}
 	textureMaterial := lambertian{texture}
-	w.Objs[l] = &sphere{mgl64.Vec3{400.0, 200.0, 400.0}, 100, textureMaterial}
+	w.Objs[l] = &sphere{mgl64.Vec3{400.0, 200.0, 400.0}, 100, &textureMaterial}
 	l++
 
 	pertex := lambertian{noiseTexture{0.1}}
-	w.Objs[l] = &sphere{mgl64.Vec3{220.0, 280.0, 300.0}, 80.0, pertex}
+	w.Objs[l] = &sphere{mgl64.Vec3{220.0, 280.0, 300.0}, 80.0, &pertex}
 	l++
 
 	boxlist2 := make([]hitable, 1000)

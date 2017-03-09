@@ -2,11 +2,14 @@ package perlin
 
 import (
 	"math/rand"
+	"time"
 
 	"math"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
+
+var randSource *rand.Rand
 
 func Noise(p mgl64.Vec3) float64 {
 	u := p.X() - math.Floor(p.X())
@@ -71,9 +74,10 @@ var permY [256]int
 var permZ [256]int
 
 func init() {
+	randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
 	// Perlin generate
 	for i := range ranVec {
-		ranVec[i] = mgl64.Vec3{-1.0 + 2.0*rand.Float64(), -1.0 + 2.0*rand.Float64(), -1.0 + 2.0*rand.Float64()}.Normalize()
+		ranVec[i] = mgl64.Vec3{-1.0 + 2.0*randSource.Float64(), -1.0 + 2.0*randSource.Float64(), -1.0 + 2.0*randSource.Float64()}.Normalize()
 	}
 
 	// init

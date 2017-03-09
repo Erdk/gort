@@ -7,21 +7,21 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-func randomInUnitSphere() mgl64.Vec3 {
-	p := mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
+func randomInUnitSphere(randSource *rand.Rand) mgl64.Vec3 {
+	p := mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
 
 	for p.Len()*p.Len() >= 1.0 {
-		p = mgl64.Vec3{2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0, 2.0*rand.Float64() - 1.0}
+		p = mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
 	}
 
 	return p
 }
 
-func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
-	if h, rec := w.calcHit(r, 0.001, math.MaxFloat64); h {
+func retColor(randSource *rand.Rand, r *ray, w *world, depth int) mgl64.Vec3 {
+	if h, rec := w.calcHit(randSource, r, 0.001, math.MaxFloat64); h {
 		emit := rec.m.emit(rec.u, rec.v, rec.p)
-		if decision, attenuation, scattered := rec.m.scatter(*r, rec); decision && depth < 50 {
-			tmp := retColor(scattered, w, depth+1)
+		if decision, attenuation, scattered := rec.m.scatter(randSource, *r, rec); decision && depth < 50 {
+			tmp := retColor(randSource, scattered, w, depth+1)
 			return mgl64.Vec3{
 				emit.X() + attenuation.X()*tmp.X(),
 				emit.Y() + attenuation.Y()*tmp.Y(),
@@ -34,13 +34,13 @@ func retColor(r *ray, w *world, depth int) mgl64.Vec3 {
 	return mgl64.Vec3{0.0, 0.0, 0.0}
 }
 
-func computeXY(w *world, vp *viewport, x, y int) mgl64.Vec3 {
+func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) mgl64.Vec3 {
 	col := mgl64.Vec3{0.0, 0.0, 0.0}
 	for s := 0; s < *ns; s++ {
-		u := (float64(x) + rand.Float64()) / float64(*nx)
-		v := (float64(y) + rand.Float64()) / float64(*ny)
-		r := vp.getRay(u, v)
-		col = col.Add(retColor(&r, w, 0))
+		u := (float64(x) + randSource.Float64()) / float64(*nx)
+		v := (float64(y) + randSource.Float64()) / float64(*ny)
+		r := vp.getRay(randSource, u, v)
+		col = col.Add(retColor(randSource, &r, w, 0))
 	}
 
 	col = col.Mul(1.0 / float64(*ns))
