@@ -9,6 +9,10 @@ Simple ray tracer written in Go.
 
 ```
 go get github.com/Erdk/gort
+cd gort
+glide up
+go build .
+./gort -h
 ```
 
 ## Rationale
