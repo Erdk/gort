@@ -20,9 +20,9 @@ import (
 	"github.com/pkg/profile"
 )
 
-var nx = flag.Int("w", 320, "width of rendered image")
-var ny = flag.Int("h", 240, "height of rendered image")
-var ns = flag.Int("s", 200, "samples per pixel")
+var nx = flag.Int("w", 640, "width of rendered image")
+var ny = flag.Int("h", 480, "height of rendered image")
+var ns = flag.Int("s", 400, "samples per pixel")
 var nt = flag.Int("t", 1, "number of parallel threads")
 var output = flag.String("o", "output", "filename without extension")
 var input = flag.String("i", "", "instead of generating world render one from file")
