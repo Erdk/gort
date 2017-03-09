@@ -1,6 +1,10 @@
 package main
 
-import "github.com/go-gl/mathgl/mgl64"
+import (
+	"math/rand"
+
+	"github.com/go-gl/mathgl/mgl64"
+)
 
 type hit struct {
 	t    float64
@@ -13,13 +17,13 @@ type hitable interface {
 	// r: casted ray
 	// min: begin of time slice
 	// max: end of time slice
-	calcHit(r *ray, min, max float64) (bool, hit)
+	calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit)
 	boundingBox(t0, t1 float64) (bool, aabb)
 }
 
 type hitlist []hitable
 
-func (h hitlist) calcHit(r *ray, min, max float64) (bool, hit) {
+func (h hitlist) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var retRec hit
 	hitAnything := false
 	closestSoFar := max
@@ -27,7 +31,7 @@ func (h hitlist) calcHit(r *ray, min, max float64) (bool, hit) {
 		if v == nil {
 			continue
 		}
-		if h, rec := v.calcHit(r, min, closestSoFar); h {
+		if h, rec := v.calcHit(randSource, r, min, closestSoFar); h {
 			hitAnything = true
 			closestSoFar = rec.t
 			retRec = rec
