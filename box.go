@@ -1,12 +1,17 @@
 package main
 
-import "github.com/go-gl/mathgl/mgl64"
+import (
+	"math/rand"
+
+	"github.com/go-gl/mathgl/mgl64"
+)
 
 type box struct {
 	Min, Max mgl64.Vec3
 	Faces    hitlist
 }
 
+// NewBox returns box bounded by two points, p0 and p1
 func NewBox(p0, p1 mgl64.Vec3, m material) *box {
 	var b box
 	b.Min = p0
@@ -25,8 +30,8 @@ func NewBox(p0, p1 mgl64.Vec3, m material) *box {
 	return &b
 }
 
-func (b box) calcHit(r *ray, min, max float64) (bool, hit) {
-	return b.Faces.calcHit(r, min, max)
+func (b box) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+	return b.Faces.calcHit(randSource, r, min, max)
 }
 
 func (b box) boundingBox(t0, t1 float64) (bool, aabb) {

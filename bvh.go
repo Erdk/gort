@@ -104,10 +104,10 @@ func bvhNodeInit(objs []hitable, n int, time0, time1 float64) bvhNode {
 	return b
 }
 
-func (b bvhNode) calcHit(r *ray, min, max float64) (bool, hit) {
+func (b bvhNode) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	if b.box.hit(r, min, max) {
-		hitLeft, recLeft := b.left.calcHit(r, min, max)
-		hitRight, recRight := b.right.calcHit(r, min, max)
+		hitLeft, recLeft := b.left.calcHit(randSource, r, min, max)
+		hitRight, recRight := b.right.calcHit(randSource, r, min, max)
 
 		if hitLeft && hitRight {
 			if recLeft.t < recRight.t {
