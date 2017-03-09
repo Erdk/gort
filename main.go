@@ -29,23 +29,97 @@ var input = flag.String("i", "", "instead of generating world render one from fi
 var saveraw = flag.Bool("j", false, "saves generated scene into <output>.json")
 var prof = flag.String("prof", "", "generate cpu/mem/block profile, by default none")
 var progress = flag.Bool("p", false, "show progress, default false")
+var computeUnit = flag.String("cu", "16x16", "unit of computation, format: wxh where w - width of stripe and h is height of stripe, by default '16x16'")
 
 type progressCounter struct {
-	counter, max, lastPrinted int
+	counter, max, lastPrinted uint
 	mtx                       *sync.Mutex
 }
 
 var progCounter *progressCounter
 
-func (p *progressCounter) incrementCounter() {
+func newProgressCounter(pixelNum uint) *progressCounter {
+	pC := &progressCounter{}
+	pC.counter = 0
+	pC.max = pixelNum
+	pC.lastPrinted = 0
+	pC.mtx = &sync.Mutex{}
+
+	return pC
+}
+
+func (p *progressCounter) incrementCounter(count uint) {
 	p.mtx.Lock()
-	p.counter++
-	newPrinted := int(float64(p.counter) / float64(p.max) * 100)
+	p.counter += count
+	newPrinted := uint(float64(p.counter) / float64(p.max) * 100)
 	if newPrinted > p.lastPrinted {
 		p.lastPrinted = newPrinted
 		fmt.Printf("\r%d%%", p.lastPrinted)
 	}
 	p.mtx.Unlock()
+}
+
+type stripe struct {
+	xStart, xEnd, yStart, yEnd int
+}
+
+func parseStripe(stripeString string) (int, int, error) {
+	return 16, 16, nil
+}
+
+type queue struct {
+	q   []stripe
+	mtx *sync.Mutex
+}
+
+func newQueue(xMax, yMax, xStripe, yStripe int) *queue {
+	q := &queue{}
+	q.mtx = &sync.Mutex{}
+
+	numXStripes := xMax / xStripe
+	if xMax%xStripe != 0 {
+		numXStripes++
+	}
+
+	numYStripes := yMax / yStripe
+	if yMax%yStripe != 0 {
+		numYStripes++
+	}
+
+	q.q = make([]stripe, numXStripes*numYStripes)
+	for i := 0; i < numXStripes; i++ {
+		for j := 0; j < numYStripes; j++ {
+			xBound := (i + 1) * xStripe
+			if xBound > xMax {
+				xBound = xMax
+			}
+			yBound := (j + 1) * yStripe
+			if yBound > yMax {
+				yBound = yMax
+			}
+			q.q[i*numYStripes+j] = stripe{
+				xStart: i * xStripe,
+				xEnd:   xBound,
+				yStart: j * yStripe,
+				yEnd:   yBound,
+			}
+		}
+	}
+
+	return q
+}
+
+func (q *queue) getJob() (stripe, bool) {
+	if len(q.q) == 0 {
+		return stripe{}, false
+	}
+
+	q.mtx.Lock()
+	retStripe := q.q[0]
+	q.q = q.q[1:len(q.q)]
+	q.mtx.Unlock()
+
+	return retStripe, true
 }
 
 func main() {
@@ -62,21 +136,11 @@ func main() {
 	}
 
 	if *progress {
-		progCounter = &progressCounter{}
-		progCounter.counter = 0
-		progCounter.max = *nx * *ny
-		progCounter.lastPrinted = 0
-		progCounter.mtx = &sync.Mutex{}
+		progCounter = newProgressCounter(uint(*nx * *ny))
 	}
 
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
-
-	// lookfrom := mgl64.Vec3{26.0, 2.0, 4.0}
-	// lookat := mgl64.Vec3{0.0, 4.0, 0.0}
-	// distToFocus := 10.0
-	// aperture := 0.0
-	// vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, 20.0, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
 
 	lookfrom := mgl64.Vec3{278.0, 278.0, -800}
 	lookat := mgl64.Vec3{278.0, 278.0, 0.0}
@@ -99,8 +163,9 @@ func main() {
 		//generateWorld(w)
 		//perlinTest(w)
 		//lightAndRectTest(w)
-		cornellBox(w)
+		//cornellBox(w)
 		//generateWorld2(w)
+		testTexture(w)
 
 		if *saveraw {
 			raw, err := json.Marshal(*w)
@@ -117,36 +182,46 @@ func main() {
 		}
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, *nx, *ny))
+	img := image.NewRGBA(image.Rect(0, 0, int(*nx), int(*ny)))
+
+	xStripe, yStripe, err := parseStripe(*computeUnit)
+	if err != nil {
+		panic("Wrong stripe format!")
+	}
+	wQ := newQueue(*nx, *ny, xStripe, yStripe)
 
 	var wg sync.WaitGroup
 	if *nt == 0 {
 		*nt = runtime.NumCPU()
 	}
-	wg.Add(*nt)
+	wg.Add(int(*nt))
 
-	f := func(threadNum, x1, x2 int) {
+	f := func(threadNum int) {
 		defer wg.Done()
-		for j := 0; j < *ny; j++ {
-			for i := x1; i < x2; i++ {
-				col := computeXY(w, vp, i, j)
-				// if col.X() < 0.0 || col.X() > 255.0 || col.Y() < 0.0 || col.Y() > 255.0 || col.Z() < 0.0 || col.Z() > 255.0 {
-				// 	fmt.Printf("WRONG COLOUR! %f %f %f", col.X(), col.Y(), col.Z())
-				// }
-				img.Set(i, *ny-j, color.RGBA{
-					uint8(col.X()),
-					uint8(col.Y()),
-					uint8(col.Z()),
-					255})
-				if *progress {
-					progCounter.incrementCounter()
+		currentStripe, continueRun := wQ.getJob()
+		for continueRun {
+			randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
+			for j := currentStripe.yStart; j < currentStripe.yEnd; j++ {
+				for i := currentStripe.xStart; i < currentStripe.xEnd; i++ {
+					col := computeXY(randSource, w, vp, i, j)
+					img.Set(i, *ny-j, color.RGBA{
+						uint8(col.X()),
+						uint8(col.Y()),
+						uint8(col.Z()),
+						255})
 				}
 			}
+
+			if *progress {
+				progCounter.incrementCounter(uint((currentStripe.yEnd - currentStripe.yStart) * (currentStripe.xEnd - currentStripe.xStart)))
+			}
+
+			currentStripe, continueRun = wQ.getJob()
 		}
 	}
 
 	for i := 0; i < *nt; i++ {
-		go f(i, *nx / *nt * i, *nx / *nt * (i+1))
+		go f(i)
 	}
 
 	fd, _ := os.Create(*output + ".png")

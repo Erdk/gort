@@ -1,13 +1,17 @@
 package main
 
-import "github.com/go-gl/mathgl/mgl64"
+import (
+	"math/rand"
+
+	"github.com/go-gl/mathgl/mgl64"
+)
 
 type xyrect struct {
 	X0, X1, Y0, Y1, K float64
 	Material          material
 }
 
-func (xy xyrect) calcHit(r *ray, min, max float64) (bool, hit) {
+func (xy xyrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	t := (xy.K - r.origin.Z()) / r.direction.Z()
 	if t < min || t > max {
@@ -40,7 +44,7 @@ type xzrect struct {
 	Material          material
 }
 
-func (xz xzrect) calcHit(r *ray, min, max float64) (bool, hit) {
+func (xz xzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	t := (xz.K - r.origin.Y()) / r.direction.Y()
 	if t < min || t > max {
@@ -73,7 +77,7 @@ type yzrect struct {
 	Material          material
 }
 
-func (yz yzrect) calcHit(r *ray, min, max float64) (bool, hit) {
+func (yz yzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	t := (yz.K - r.origin.X()) / r.direction.X()
 	if t < min || t > max {
@@ -105,8 +109,8 @@ type flipNormals struct {
 	h hitable
 }
 
-func (f flipNormals) calcHit(r *ray, min, max float64) (bool, hit) {
-	dec, rec := f.h.calcHit(r, min, max)
+func (f flipNormals) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+	dec, rec := f.h.calcHit(randSource, r, min, max)
 	if dec {
 		rec.n = rec.n.Mul(-1.0)
 		return dec, rec
