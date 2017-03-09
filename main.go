@@ -113,7 +113,7 @@ func main() {
 			for j := currentStripe.yStart; j < currentStripe.yEnd; j++ {
 				for i := currentStripe.xStart; i < currentStripe.xEnd; i++ {
 					col := computeXY(randSource, w, vp, i, j)
-					img.Set(i, *ny-j, color.RGBA{
+					img.Set(i, *ny-j-1, color.RGBA{
 						uint8(col.X()),
 						uint8(col.Y()),
 						uint8(col.Z()),
