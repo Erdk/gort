@@ -31,22 +31,26 @@ Shirley's books on Amazon about ray-tracing: "Ray Tracing in One Weekend",
 
 ```
     -w <width>
-        width of generated image, by default 640.
+        Width of generated image, by default 640.
     -h <height>
-        height of generated image, by default 480.
+        Height of generated image, by default 480.
     -s <samples-per-pixel>
-        number of rays per pixel, by default 200.
+        Number of rays per pixel, by default 400.
     -t <threads>
-        number of parallel rendering jobs, by default 2.
+        Number of parallel rendering jobs, by default 1. Set 0 for auto (max CPU threads).
     -o <output-file>
-        filename (without extension) of png with output, by default "output".
+        Filename (without extension) of png with output, by default "output".
     -i <input-file>
-        filename of input file, if this flag is used then scene won't be randomly generated. By default empty.
+        Filename of input file, if this flag is used then scene won't be randomly generated. By default empty.
     -j <save-scene>
-        save genereated scene before render to <output>.json, by default false.
+        Save genereated scene before render to <output>.json, by default false.
     -prof <profile>
-        generate profiling profile to use with 'go tool pprof'. By default none (no profiling). Available profiles:
+        Generate profiling profile to use with 'go tool pprof'. By default none (no profiling). Available profiles:
         - cpu 
         - mem
         - block
+    -p
+        If present it'll show progress (in %).
+    -cu AxB
+        Compute unit, number of patch to compute at once by goroutine, by default 16x16.
 ```
