@@ -106,13 +106,17 @@ func getImageTexture(file string) (imageTexture, error) {
 }
 
 type isotropicMaterial struct {
-	albedo texture
+	Albedo texture
+}
+
+func newIsotropicMaterialRGB(r, g, b float64) material {
+	return &isotropicMaterial{constantTexture{mgl64.Vec3{r, g, b}}}
 }
 
 func (i isotropicMaterial) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
 	randVec := randomInUnitSphere(randSource)
 	scattered = &ray{&rec.p, &randVec, 0.0}
-	attenuation = i.albedo.value(rec.u, rec.v, rec.p)
+	attenuation = i.Albedo.value(rec.u, rec.v, rec.p)
 
 	return true, attenuation, scattered
 }
