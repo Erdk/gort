@@ -74,7 +74,8 @@ func main() {
 		//lightAndRectTest(w)
 		//cornellBox(w)
 		//generateWorld2(w)
-		testTexture(w)
+		//testTexture(w)
+		colorVolWorld(w)
 
 		if *saveraw {
 			raw, err := json.Marshal(*w)
