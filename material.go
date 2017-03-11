@@ -16,8 +16,8 @@ type lambertian struct {
 	Albedo texture
 }
 
-func getLambertian(v mgl64.Vec3) *lambertian {
-	return &lambertian{Albedo: constantTexture{v}}
+func newLambertianRGB(r, g, b float64) material {
+	return &lambertian{constantTexture{mgl64.Vec3{r, g, b}}}
 }
 
 func (l *lambertian) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
@@ -42,12 +42,12 @@ type metal struct {
 	Fuzz   float64
 }
 
-func getMetal(v mgl64.Vec3, f float64) *metal {
-	if f >= 1.0 {
-		f = 1.0
+func newMetalRGB(fuzz, r, g, b float64) material {
+	if fuzz >= 1.0 {
+		fuzz = 1.0
 	}
 
-	return &metal{Albedo: &v, Fuzz: f}
+	return &metal{Albedo: &mgl64.Vec3{r, g, b}, Fuzz: fuzz}
 }
 
 func (m *metal) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
@@ -86,12 +86,21 @@ func schlick(cosine, refIdx float64) float64 {
 }
 
 type dielectric struct {
-	RefIdx float64
+	RefIdx      float64
+	Attenuation *mgl64.Vec3
+}
+
+func newDielectric(refIdx float64) material {
+	return &dielectric{refIdx, &mgl64.Vec3{1.0, 1.0, 1.0}}
+}
+
+func newDielectricRGB(refIdx, r, g, b float64) material {
+	return &dielectric{refIdx, &mgl64.Vec3{r, g, b}}
 }
 
 func (d *dielectric) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
 	reflected := reflectvec(*in.direction, rec.n)
-	attenuation = &mgl64.Vec3{1.0, 1.0, 1.0}
+	attenuation = d.Attenuation
 	var niOverNt float64
 	var cosine float64
 	var reflectProbe float64
@@ -129,6 +138,10 @@ func (d *dielectric) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 
 type diffuseLight struct {
 	emitTexture texture
+}
+
+func newDiffuseLightRGB(r, g, b float64) material {
+	return &diffuseLight{constantTexture{mgl64.Vec3{r, g, b}}}
 }
 
 func (d *diffuseLight) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
