@@ -151,3 +151,23 @@ func (d *diffuseLight) scatter(randSource *rand.Rand, in ray, rec hit) (decision
 func (d *diffuseLight) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 	return d.emitTexture.value(u, v, p)
 }
+
+type isotropicMaterial struct {
+	Albedo texture
+}
+
+func newIsotropicMaterialRGB(r, g, b float64) material {
+	return &isotropicMaterial{constantTexture{mgl64.Vec3{r, g, b}}}
+}
+
+func (i isotropicMaterial) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
+	randVec := randomInUnitSphere(randSource)
+	scattered = &ray{&rec.p, &randVec, 0.0}
+	attenuation = i.Albedo.value(rec.u, rec.v, rec.p)
+
+	return true, attenuation, scattered
+}
+
+func (i isotropicMaterial) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
+	return &mgl64.Vec3{0.0, 0.0, 0.0}
+}
