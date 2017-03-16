@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"math"
-	"math/rand"
 	"os"
 
 	"path/filepath"
@@ -71,7 +70,7 @@ func (i imageTexture) value(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
 		y = float64(i.maxy - 1.0)
 	}
 	r, g, b, _ := i.tex.At(int(x), int(y)).RGBA()
-	return &mgl64.Vec3{float64(r/0x101) / 255.0, float64(g/0x101) / 255.0, float64(b/0x101) / 255.0}
+	return &mgl64.Vec3{float64(r) / float64(65536), float64(g) / float64(65536), float64(b) / float64(65536)}
 }
 
 func getImageTexture(file string) (imageTexture, error) {
@@ -103,24 +102,4 @@ func getImageTexture(file string) (imageTexture, error) {
 	iT.maxy = bounds.Max.Y
 
 	return iT, nil
-}
-
-type isotropicMaterial struct {
-	Albedo texture
-}
-
-func newIsotropicMaterialRGB(r, g, b float64) material {
-	return &isotropicMaterial{constantTexture{mgl64.Vec3{r, g, b}}}
-}
-
-func (i isotropicMaterial) scatter(randSource *rand.Rand, in ray, rec hit) (decision bool, attenuation *mgl64.Vec3, scattered *ray) {
-	randVec := randomInUnitSphere(randSource)
-	scattered = &ray{&rec.p, &randVec, 0.0}
-	attenuation = i.Albedo.value(rec.u, rec.v, rec.p)
-
-	return true, attenuation, scattered
-}
-
-func (i isotropicMaterial) emit(u, v float64, p mgl64.Vec3) *mgl64.Vec3 {
-	return &mgl64.Vec3{0.0, 0.0, 0.0}
 }

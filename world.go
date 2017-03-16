@@ -107,13 +107,24 @@ func testTexture(w *world) {
 
 // colorVolWorld: generates scene with room and 3 dielectric spheres, middle one contains volume object
 func colorVolWorld(w *world) {
-	w.Objs = make([]hitable, 13)
+	w.Objs = make([]hitable, 9)
 
 	// materials
 	red := newLambertianRGB(0.65, 0.05, 0.05)
 	white := newLambertianRGB(0.73, 0.73, 0.73)
 	green := newLambertianRGB(0.12, 0.45, 0.15)
 	light := newDiffuseLightRGB(7.0, 7.0, 7.0)
+	earthTexture, err := getImageTexture("static/earthmap.jpg")
+	if err != nil {
+		panic("CANNOT LOAD TEXTURE!")
+	}
+	earthMat := &lambertian{earthTexture}
+
+	moonTexture, err := getImageTexture("static/moonmap.jpg")
+	if err != nil {
+		panic("CANNOT LOAD TEXTURE!")
+	}
+	moonMat := &lambertian{moonTexture}
 
 	// objects
 
@@ -125,21 +136,15 @@ func colorVolWorld(w *world) {
 	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
+	// Earth
+	w.Objs[6] = &sphere{mgl64.Vec3{208.0, 208.0, 208.0}, 140, earthMat}
+
+	// Moom
+	w.Objs[7] = &sphere{mgl64.Vec3{417.0, 417.0, 417.0}, 40, moonMat}
+
 	// "mist"
-	sphereBoundary := &sphere{mgl64.Vec3{0.0, 0.0, 0.0}, 1000, newDielectric(1.5)}
-	w.Objs[6] = &constantMedium{sphereBoundary, 0.001, newIsotropicMaterialRGB(1.0, 0.0, 0.0)}
-
-	// first sphere
-	w.Objs[7] = &sphere{mgl64.Vec3{278.0, 278.0, 278.0}, 100, newDielectricRGB(1.5, 1.0, 1.0, 1.0)}
-	w.Objs[8] = &sphere{mgl64.Vec3{278.0, 278.0, 278.0}, -99, newDielectricRGB(1.5, 1.0, 0.0, 0.0)}
-
-	// second sphere
-	w.Objs[9] = &sphere{mgl64.Vec3{139.0, 175.0, 139.0}, 100, newDielectricRGB(1.5, 0.0, 1.0, 0.0)}
-	w.Objs[10] = &sphere{mgl64.Vec3{139.0, 175.0, 139.0}, -99, newDielectricRGB(1.5, 0.0, 1.0, 0.0)}
-
-	// third sphere
-	w.Objs[11] = &sphere{mgl64.Vec3{417.0, 375.0, 417.0}, 100, newDielectricRGB(1.5, 0.0, 0.0, 1.0)}
-	w.Objs[12] = &sphere{mgl64.Vec3{417.0, 375.0, 417.0}, -99, newDielectricRGB(1.5, 0.0, 0.0, 1.0)}
+	boxBoundary := NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{555.0, 555.0, 555.0}, newDielectric(1.5))
+	w.Objs[8] = &constantMedium{boxBoundary, 0.0005, newIsotropicMaterialRGB(0.3, 0.3, 0.3)}
 }
 
 func generateWorld(w *world) {
