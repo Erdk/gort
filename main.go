@@ -16,7 +16,7 @@ import (
 
 	"runtime"
 
-	"github.com/go-gl/mathgl/mgl64"
+	. "github.com/Erdk/gort/types"
 	"github.com/pkg/profile"
 )
 
@@ -51,12 +51,12 @@ func main() {
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
-	lookfrom := mgl64.Vec3{278.0, 278.0, -800}
-	lookat := mgl64.Vec3{278.0, 278.0, 0.0}
+	lookfrom := &Vec{278.0, 278.0, -800}
+	lookat := &Vec{278.0, 278.0, 0.0}
 	distToFocus := 10.0
 	aperture := 0.0
 	vfov := 40.0
-	vp := newVP(lookfrom, lookat, mgl64.Vec3{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
+	vp := newVP(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
 
 	w := &world{}
 
@@ -115,9 +115,9 @@ func main() {
 				for i := currentStripe.xStart; i < currentStripe.xEnd; i++ {
 					col := computeXY(randSource, w, vp, i, j)
 					img.Set(i, *ny-j-1, color.RGBA{
-						uint8(col.X()),
-						uint8(col.Y()),
-						uint8(col.Z()),
+						uint8(col[0]),
+						uint8(col[1]),
+						uint8(col[2]),
 						255})
 				}
 			}
