@@ -3,29 +3,29 @@ package main
 import (
 	"math/rand"
 
-	"github.com/go-gl/mathgl/mgl64"
+	. "github.com/Erdk/gort/types"
 )
 
 type box struct {
-	Min, Max mgl64.Vec3
+	Min, Max *Vec
 	Faces    hitlist
 }
 
 // NewBox returns box bounded by two points, p0 and p1
-func NewBox(p0, p1 mgl64.Vec3, m material) *box {
+func NewBox(p0, p1 *Vec, m material) *box {
 	var b box
 	b.Min = p0
 	b.Max = p1
 	b.Faces = make([]hitable, 6)
 
-	b.Faces[0] = &xyrect{p0.X(), p1.X(), p0.Y(), p1.Y(), p1.Z(), m}
-	b.Faces[1] = &flipNormals{&xyrect{p0.X(), p1.X(), p0.Y(), p1.Y(), p0.Z(), m}}
+	b.Faces[0] = xyrect{p0[0], p1[0], p0[1], p1[1], p1[2], m}
+	b.Faces[1] = flipNormals{xyrect{p0[0], p1[0], p0[1], p1[1], p0[2], m}}
 
-	b.Faces[2] = &xzrect{p0.X(), p1.X(), p0.Z(), p1.Z(), p1.Y(), m}
-	b.Faces[3] = &flipNormals{&xzrect{p0.X(), p1.X(), p0.Z(), p1.Z(), p0.Y(), m}}
+	b.Faces[2] = xzrect{p0[0], p1[0], p0[2], p1[2], p1[1], m}
+	b.Faces[3] = flipNormals{xzrect{p0[0], p1[0], p0[2], p1[2], p0[1], m}}
 
-	b.Faces[4] = &yzrect{p0.Y(), p1.Y(), p0.Z(), p1.Z(), p1.X(), m}
-	b.Faces[5] = &flipNormals{&yzrect{p0.Y(), p1.Y(), p0.Z(), p1.Z(), p0.X(), m}}
+	b.Faces[4] = yzrect{p0[1], p1[1], p0[2], p1[2], p1[0], m}
+	b.Faces[5] = flipNormals{yzrect{p0[1], p1[1], p0[2], p1[2], p0[0], m}}
 
 	return &b
 }
