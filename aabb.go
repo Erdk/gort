@@ -1,10 +1,13 @@
 package main
 
-import "github.com/go-gl/mathgl/mgl64"
-import "math"
+import (
+	"math"
+
+	. "github.com/Erdk/gort/types"
+)
 
 type aabb struct {
-	min, max mgl64.Vec3
+	min, max *Vec
 }
 
 func (a *aabb) hit(r *ray, tmin, tmax float64) bool {

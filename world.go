@@ -3,7 +3,7 @@ package main
 import (
 	"math/rand"
 
-	"github.com/go-gl/mathgl/mgl64"
+	. "github.com/Erdk/gort/types"
 )
 
 type world struct {
@@ -23,13 +23,13 @@ func perlinTest(w *world) {
 	perlinTex := noiseTexture{1.0}
 	w.Objs[0] = &sphere{
 		Radius:   1000,
-		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: &lambertian{&perlinTex},
+		Center:   &Vec{0.0, -1000.0, 0.0},
+		Material: &lambertian{perlinTex},
 	}
 	w.Objs[1] = &sphere{
 		Radius:   2.0,
-		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
-		Material: &lambertian{&perlinTex},
+		Center:   &Vec{0.0, 2.0, 0.0},
+		Material: &lambertian{perlinTex},
 	}
 }
 
@@ -38,17 +38,17 @@ func lightAndRectTest(w *world) {
 	perlinTex := noiseTexture{4.0}
 	w.Objs[0] = &sphere{
 		Radius:   1000,
-		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: &lambertian{&perlinTex},
+		Center:   &Vec{0.0, -1000.0, 0.0},
+		Material: &lambertian{perlinTex},
 	}
 	w.Objs[1] = &sphere{
 		Radius:   2,
-		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
-		Material: &lambertian{&perlinTex},
+		Center:   &Vec{0.0, 2.0, 0.0},
+		Material: &lambertian{perlinTex},
 	}
 	w.Objs[2] = &sphere{
 		Radius:   2,
-		Center:   mgl64.Vec3{0.0, 7.0, 0.0},
+		Center:   &Vec{0.0, 7.0, 0.0},
 		Material: newDiffuseLightRGB(4.0, 4.0, 4.0),
 	}
 	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, newDiffuseLightRGB(4.0, 4.0, 4.0)}
@@ -68,11 +68,11 @@ func cornellBox(w *world) {
 	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
 	b1 := &translate{NewRotateY(
-		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 165.0, 165.0}, white), -18.0),
-		mgl64.Vec3{130.0, 0.0, 65.0}}
+		NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{165.0, 165.0, 165.0}, white), -18.0),
+		&Vec{130.0, 0.0, 65.0}}
 	b2 := &translate{NewRotateY(
-		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 330.0, 165.0}, white), 15.0),
-		mgl64.Vec3{265.0, 0.0, 295.0}}
+		NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{165.0, 330.0, 165.0}, white), 15.0),
+		&Vec{265.0, 0.0, 295.0}}
 	w.Objs[6] = &constantMedium{b1, 0.01, newIsotropicMaterialRGB(1.0, 1.0, 1.0)}
 	w.Objs[7] = &constantMedium{b2, 0.01, newIsotropicMaterialRGB(0.0, 0.0, 0.0)}
 }
@@ -102,7 +102,7 @@ func testTexture(w *world) {
 	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
 	// centered sphere
-	w.Objs[6] = &sphere{mgl64.Vec3{278.0, 278.0, 278.0}, 130, &textureMaterial}
+	w.Objs[6] = &sphere{&Vec{278.0, 278.0, 278.0}, 130, &textureMaterial}
 }
 
 // colorVolWorld: generates scene with room and 3 dielectric spheres, middle one contains volume object
@@ -137,13 +137,13 @@ func colorVolWorld(w *world) {
 	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
 	// Earth
-	w.Objs[6] = &sphere{mgl64.Vec3{208.0, 208.0, 208.0}, 140, earthMat}
+	w.Objs[6] = &sphere{&Vec{208.0, 208.0, 208.0}, 140, earthMat}
 
 	// Moom
-	w.Objs[7] = &sphere{mgl64.Vec3{417.0, 417.0, 417.0}, 40, moonMat}
+	w.Objs[7] = &sphere{&Vec{417.0, 417.0, 417.0}, 40, moonMat}
 
 	// "mist"
-	boxBoundary := NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{555.0, 555.0, 555.0}, newDielectric(1.5))
+	boxBoundary := NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{555.0, 555.0, 555.0}, newDielectric(1.5))
 	w.Objs[8] = &constantMedium{boxBoundary, 0.0005, newIsotropicMaterialRGB(0.3, 0.3, 0.3)}
 }
 
@@ -153,38 +153,38 @@ func generateWorld(w *world) {
 
 	w.Objs[i] = &sphere{
 		Radius:   0.5,
-		Center:   mgl64.Vec3{0.0, 0.0, -1.0},
+		Center:   &Vec{0.0, 0.0, -1.0},
 		Material: newLambertianRGB(0.1, 0.2, 0.5)}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   100,
-		Center:   mgl64.Vec3{0.0, -100.5, -1.0},
+		Center:   &Vec{0.0, -100.5, -1.0},
 		Material: newLambertianRGB(0.8, 0.8, 0.0)}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   0.5,
-		Center:   mgl64.Vec3{1.0, 0.0, -1.0},
+		Center:   &Vec{1.0, 0.0, -1.0},
 		Material: newMetalRGB(0.3, 0.8, 0.6, 0.2)}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   0.5,
-		Center:   mgl64.Vec3{-1.0, 0.0, -1.0},
+		Center:   &Vec{-1.0, 0.0, -1.0},
 		Material: newDielectric(1.5)}
 	i++
 
 	w.Objs[i] = &sphere{
 		Radius:   -0.45,
-		Center:   mgl64.Vec3{-1.0, 0.0, -1.0},
+		Center:   &Vec{-1.0, 0.0, -1.0},
 		Material: newDielectric(1.5)}
 	i++
 
-	cTexture := &checkerTexture{&constantTexture{mgl64.Vec3{0.2, 0.3, 0.1}}, &constantTexture{mgl64.Vec3{0.9, 0.9, 0.9}}}
+	cTexture := checkerTexture{constantTexture{&Vec{0.2, 0.3, 0.1}}, constantTexture{&Vec{0.9, 0.9, 0.9}}}
 	w.Objs[i] = &sphere{
 		Radius:   1000.0,
-		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
+		Center:   &Vec{0.0, -1000.0, 0.0},
 		Material: &lambertian{cTexture},
 	}
 	i++
@@ -192,18 +192,18 @@ func generateWorld(w *world) {
 	for a := -11; a < 11; a++ {
 		for b := -11; b < 11; b++ {
 			chooseMat := rand.Float64()
-			center := mgl64.Vec3{
+			center := &Vec{
 				float64(a) + 0.9*rand.Float64(),
 				0.2,
 				float64(b) + 0.9*rand.Float64()}
 
-			len := center.Sub(mgl64.Vec3{4.0, 0.2, 0.0}).Len()
+			len := center.SubVI(&Vec{4.0, 0.2, 0.0}).Len()
 			if len > 0.9 {
 				if chooseMat < 0.8 { // diffuse
 					w.Objs[i] = &movingSphere{
 						Radius:  0.2,
 						Center0: center,
-						Center1: center.Add(mgl64.Vec3{0.0, 0.5 * rand.Float64(), 0.0}),
+						Center1: center.AddVI(&Vec{0.0, 0.5 * rand.Float64(), 0.0}),
 						Time0:   0.0,
 						Time1:   1.0,
 						Material: newLambertianRGB(
@@ -238,17 +238,17 @@ func generateWorld(w *world) {
 
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
-		Center:   mgl64.Vec3{0.0, 1.0, 0.0},
+		Center:   &Vec{0.0, 1.0, 0.0},
 		Material: newDielectric(1.5)}
 	i++
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
-		Center:   mgl64.Vec3{-4.0, 1.0, 0.0},
+		Center:   &Vec{-4.0, 1.0, 0.0},
 		Material: newLambertianRGB(0.4, 0.2, 0.1)}
 	i++
 	w.Objs[i] = &sphere{
 		Radius:   1.0,
-		Center:   mgl64.Vec3{4.0, 1.0, 0.0},
+		Center:   &Vec{4.0, 1.0, 0.0},
 		Material: newMetalRGB(0.0, 0.7, 0.6, 0.5)}
 }
 
@@ -272,7 +272,7 @@ func generateWorld2(w *world) {
 			x1 := x0 + w
 			y1 := 100.0 * (rand.Float64() + 0.01)
 			z1 := z0 + w
-			boxlist[b] = NewBox(mgl64.Vec3{x0, y0, z0}, mgl64.Vec3{x1, y1, z1}, ground)
+			boxlist[b] = NewBox(&Vec{x0, y0, z0}, &Vec{x1, y1, z1}, ground)
 			b = b + 1
 		}
 	}
@@ -283,25 +283,25 @@ func generateWorld2(w *world) {
 	w.Objs[l] = &xzrect{123.0, 423.0, 147.0, 412.0, 554.0, light}
 	l++
 
-	center := mgl64.Vec3{400.0, 400.0, 400.0}
+	center := &Vec{400.0, 400.0, 400.0}
 
-	w.Objs[l] = &movingSphere{center, center.Add(mgl64.Vec3{30.0, 0.0, 0.0}), 0.0, 1.0, 50.0, newLambertianRGB(0.7, 0.3, 0.1)}
+	w.Objs[l] = &movingSphere{center, center.AddVI(&Vec{30.0, 0.0, 0.0}), 0.0, 1.0, 50.0, newLambertianRGB(0.7, 0.3, 0.1)}
 	l++
 
-	w.Objs[l] = &sphere{mgl64.Vec3{260.0, 150.0, 45.0}, 50.0, newDielectric(1.5)}
+	w.Objs[l] = &sphere{&Vec{260.0, 150.0, 45.0}, 50.0, newDielectric(1.5)}
 	l++
 
-	w.Objs[l] = &sphere{mgl64.Vec3{0.0, 150.0, 145.0}, 50.0, newMetalRGB(10, 0.8, 0.8, 0.9)}
+	w.Objs[l] = &sphere{&Vec{0.0, 150.0, 145.0}, 50.0, newMetalRGB(10, 0.8, 0.8, 0.9)}
 	l++
 
-	boundary := &sphere{mgl64.Vec3{360.0, 150.0, 145.0}, 70.0, newDielectric(1.5)}
+	boundary := &sphere{&Vec{360.0, 150.0, 145.0}, 70.0, newDielectric(1.5)}
 	w.Objs[l] = boundary
 	l++
 
 	w.Objs[l] = &constantMedium{boundary, 0.2, newIsotropicMaterialRGB(0.2, 0.4, 0.9)}
 	l++
 
-	boundary2 := &sphere{mgl64.Vec3{0.0, 0.0, 0.0}, 5000.0, newDielectric(1.5)}
+	boundary2 := &sphere{&Vec{0.0, 0.0, 0.0}, 5000.0, newDielectric(1.5)}
 	w.Objs[l] = &constantMedium{boundary2, 0.0001, newIsotropicMaterialRGB(1.0, 1.0, 1.0)}
 	l++
 
@@ -310,17 +310,17 @@ func generateWorld2(w *world) {
 		panic("CANNOT LOAD TEXTURE!")
 	}
 	textureMaterial := lambertian{texture}
-	w.Objs[l] = &sphere{mgl64.Vec3{400.0, 200.0, 400.0}, 100, &textureMaterial}
+	w.Objs[l] = &sphere{&Vec{400.0, 200.0, 400.0}, 100, &textureMaterial}
 	l++
 
-	pertex := lambertian{&noiseTexture{0.1}}
-	w.Objs[l] = &sphere{mgl64.Vec3{220.0, 280.0, 300.0}, 80.0, &pertex}
+	pertex := lambertian{noiseTexture{0.1}}
+	w.Objs[l] = &sphere{&Vec{220.0, 280.0, 300.0}, 80.0, &pertex}
 	l++
 
 	boxlist2 := make([]hitable, 1000)
 	for j := 0; j < 1000; j++ {
-		boxlist2[j] = &sphere{mgl64.Vec3{160.0 * rand.Float64(), 160.0 * rand.Float64(), 160.0 * rand.Float64()}, 10.0, white}
+		boxlist2[j] = &sphere{&Vec{160.0 * rand.Float64(), 160.0 * rand.Float64(), 160.0 * rand.Float64()}, 10.0, white}
 	}
 
-	w.Objs[l] = translate{NewRotateY(bvhNodeInit(boxlist2, 1000, 0.0, 1.0), 15.0), mgl64.Vec3{-100.0, 270.0, 395.0}}
+	w.Objs[l] = translate{NewRotateY(bvhNodeInit(boxlist2, 1000, 0.0, 1.0), 15.0), &Vec{-100.0, 270.0, 395.0}}
 }

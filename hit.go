@@ -3,13 +3,13 @@ package main
 import (
 	"math/rand"
 
-	"github.com/go-gl/mathgl/mgl64"
+	. "github.com/Erdk/gort/types"
 )
 
 type hit struct {
 	t    float64
 	u, v float64
-	p, n mgl64.Vec3
+	p, n *Vec
 	m    material
 }
 
