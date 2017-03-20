@@ -34,7 +34,7 @@ func (xy *xyrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool
 	return true, rec
 }
 
-func (xy xyrect) boundingBox(t0, t1 float64) (bool, aabb) {
+func (xy *xyrect) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, aabb{min: &Vec{xy.X0, xy.Y0, xy.K - 0.0001},
 		max: &Vec{xy.X1, xy.Y1, xy.K + 0.0001}}
 }
@@ -67,7 +67,7 @@ func (xz *xzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool
 	return true, rec
 }
 
-func (xz xzrect) boundingBox(t0, t1 float64) (bool, aabb) {
+func (xz *xzrect) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, aabb{min: &Vec{xz.X0, xz.Z0, xz.K - 0.0001},
 		max: &Vec{xz.X1, xz.Z1, xz.K + 0.0001}}
 }
@@ -100,7 +100,7 @@ func (yz *yzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool
 	return true, rec
 }
 
-func (yz yzrect) boundingBox(t0, t1 float64) (bool, aabb) {
+func (yz *yzrect) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, aabb{min: &Vec{yz.Y0, yz.Z0, yz.K - 0.0001},
 		max: &Vec{yz.Y1, yz.Z1, yz.K + 0.0001}}
 }
