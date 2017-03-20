@@ -7,7 +7,7 @@ type aabb struct {
 	min, max mgl64.Vec3
 }
 
-func (a aabb) hit(r *ray, tmin, tmax float64) bool {
+func (a *aabb) hit(r *ray, tmin, tmax float64) bool {
 	for i := 0; i < 3; i++ {
 		t0 := math.Min((a.min[i]-r.origin[i])/r.direction[i],
 			(a.max[i]-r.origin[i])/r.direction[i])

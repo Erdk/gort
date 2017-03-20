@@ -24,12 +24,12 @@ func perlinTest(w *world) {
 	w.Objs[0] = &sphere{
 		Radius:   1000,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: &lambertian{perlinTex},
+		Material: &lambertian{&perlinTex},
 	}
 	w.Objs[1] = &sphere{
 		Radius:   2.0,
 		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
-		Material: &lambertian{perlinTex},
+		Material: &lambertian{&perlinTex},
 	}
 }
 
@@ -39,12 +39,12 @@ func lightAndRectTest(w *world) {
 	w.Objs[0] = &sphere{
 		Radius:   1000,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
-		Material: &lambertian{perlinTex},
+		Material: &lambertian{&perlinTex},
 	}
 	w.Objs[1] = &sphere{
 		Radius:   2,
 		Center:   mgl64.Vec3{0.0, 2.0, 0.0},
-		Material: &lambertian{perlinTex},
+		Material: &lambertian{&perlinTex},
 	}
 	w.Objs[2] = &sphere{
 		Radius:   2,
@@ -60,12 +60,12 @@ func cornellBox(w *world) {
 	white := newLambertianRGB(0.73, 0.73, 0.73)
 	green := newLambertianRGB(0.12, 0.45, 0.15)
 	light := newDiffuseLightRGB(7.0, 7.0, 7.0)
-	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
+	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
 	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
-	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[3] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
 	b1 := &translate{NewRotateY(
 		NewBox(mgl64.Vec3{0.0, 0.0, 0.0}, mgl64.Vec3{165.0, 165.0, 165.0}, white), -18.0),
@@ -94,12 +94,12 @@ func testTexture(w *world) {
 	// objects
 
 	// room
-	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
+	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
 	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
-	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[3] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
 	// centered sphere
 	w.Objs[6] = &sphere{mgl64.Vec3{278.0, 278.0, 278.0}, 130, &textureMaterial}
@@ -129,12 +129,12 @@ func colorVolWorld(w *world) {
 	// objects
 
 	// room
-	w.Objs[0] = &flipNormals{yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
+	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
 	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
-	w.Objs[3] = &flipNormals{xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[3] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	w.Objs[5] = &flipNormals{xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 
 	// Earth
 	w.Objs[6] = &sphere{mgl64.Vec3{208.0, 208.0, 208.0}, 140, earthMat}
@@ -181,7 +181,7 @@ func generateWorld(w *world) {
 		Material: newDielectric(1.5)}
 	i++
 
-	cTexture := checkerTexture{constantTexture{mgl64.Vec3{0.2, 0.3, 0.1}}, constantTexture{mgl64.Vec3{0.9, 0.9, 0.9}}}
+	cTexture := &checkerTexture{&constantTexture{mgl64.Vec3{0.2, 0.3, 0.1}}, &constantTexture{mgl64.Vec3{0.9, 0.9, 0.9}}}
 	w.Objs[i] = &sphere{
 		Radius:   1000.0,
 		Center:   mgl64.Vec3{0.0, -1000.0, 0.0},
@@ -313,7 +313,7 @@ func generateWorld2(w *world) {
 	w.Objs[l] = &sphere{mgl64.Vec3{400.0, 200.0, 400.0}, 100, &textureMaterial}
 	l++
 
-	pertex := lambertian{noiseTexture{0.1}}
+	pertex := lambertian{&noiseTexture{0.1}}
 	w.Objs[l] = &sphere{mgl64.Vec3{220.0, 280.0, 300.0}, 80.0, &pertex}
 	l++
 
