@@ -18,14 +18,14 @@ func NewBox(p0, p1 *Vec, m material) *box {
 	b.Max = p1
 	b.Faces = make([]hitable, 6)
 
-	b.Faces[0] = xyrect{p0[0], p1[0], p0[1], p1[1], p1[2], m}
-	b.Faces[1] = flipNormals{xyrect{p0[0], p1[0], p0[1], p1[1], p0[2], m}}
+	b.Faces[0] = &xyrect{p0[0], p1[0], p0[1], p1[1], p1[2], m}
+	b.Faces[1] = &flipNormals{&xyrect{p0[0], p1[0], p0[1], p1[1], p0[2], m}}
 
-	b.Faces[2] = xzrect{p0[0], p1[0], p0[2], p1[2], p1[1], m}
-	b.Faces[3] = flipNormals{xzrect{p0[0], p1[0], p0[2], p1[2], p0[1], m}}
+	b.Faces[2] = &xzrect{p0[0], p1[0], p0[2], p1[2], p1[1], m}
+	b.Faces[3] = &flipNormals{&xzrect{p0[0], p1[0], p0[2], p1[2], p0[1], m}}
 
-	b.Faces[4] = yzrect{p0[1], p1[1], p0[2], p1[2], p1[0], m}
-	b.Faces[5] = flipNormals{yzrect{p0[1], p1[1], p0[2], p1[2], p0[0], m}}
+	b.Faces[4] = &yzrect{p0[1], p1[1], p0[2], p1[2], p1[0], m}
+	b.Faces[5] = &flipNormals{&yzrect{p0[1], p1[1], p0[2], p1[2], p0[0], m}}
 
 	return &b
 }
