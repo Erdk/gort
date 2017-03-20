@@ -39,8 +39,8 @@ type rotateY struct {
 	Box                aabb
 }
 
-func NewRotateY(obj hitable, angle float64) rotateY {
-	ry := rotateY{}
+func NewRotateY(obj hitable, angle float64) *rotateY {
+	ry := &rotateY{}
 	ry.Obj = obj
 	radians := math.Pi / 180.0 * angle
 	ry.SinTheta = math.Sin(radians)
@@ -75,7 +75,7 @@ func NewRotateY(obj hitable, angle float64) rotateY {
 	return ry
 }
 
-func (ry rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (ry *rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	origin := *r.origin
 	direction := *r.direction
 	origin[0] = ry.CosTheta*r.origin[0] - ry.SinTheta*r.origin[2]
@@ -98,6 +98,6 @@ func (ry rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool
 	return false, hit{}
 }
 
-func (ry rotateY) boundingBox(t0, t1 float64) (bool, aabb) {
+func (ry *rotateY) boundingBox(t0, t1 float64) (bool, aabb) {
 	return ry.HasBox, ry.Box
 }

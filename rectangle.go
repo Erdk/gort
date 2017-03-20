@@ -11,7 +11,7 @@ type xyrect struct {
 	Material          material
 }
 
-func (xy xyrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (xy *xyrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	t := (xy.K - r.origin.Z()) / r.direction.Z()
 	if t < min || t > max {
@@ -34,7 +34,7 @@ func (xy xyrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 	return true, rec
 }
 
-func (xy xyrect) boundingBox(t0, t1 float64) (bool, aabb) {
+func (xy *xyrect) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, aabb{min: mgl64.Vec3{xy.X0, xy.Y0, xy.K - 0.0001},
 		max: mgl64.Vec3{xy.X1, xy.Y1, xy.K + 0.0001}}
 }
@@ -44,7 +44,7 @@ type xzrect struct {
 	Material          material
 }
 
-func (xz xzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (xz *xzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	t := (xz.K - r.origin.Y()) / r.direction.Y()
 	if t < min || t > max {
@@ -67,7 +67,7 @@ func (xz xzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 	return true, rec
 }
 
-func (xz xzrect) boundingBox(t0, t1 float64) (bool, aabb) {
+func (xz *xzrect) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, aabb{min: mgl64.Vec3{xz.X0, xz.Z0, xz.K - 0.0001},
 		max: mgl64.Vec3{xz.X1, xz.Z1, xz.K + 0.0001}}
 }
@@ -77,7 +77,7 @@ type yzrect struct {
 	Material          material
 }
 
-func (yz yzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (yz *yzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	t := (yz.K - r.origin.X()) / r.direction.X()
 	if t < min || t > max {
@@ -100,7 +100,7 @@ func (yz yzrect) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 	return true, rec
 }
 
-func (yz yzrect) boundingBox(t0, t1 float64) (bool, aabb) {
+func (yz *yzrect) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, aabb{min: mgl64.Vec3{yz.Y0, yz.Z0, yz.K - 0.0001},
 		max: mgl64.Vec3{yz.Y1, yz.Z1, yz.K + 0.0001}}
 }
@@ -109,16 +109,19 @@ type flipNormals struct {
 	h hitable
 }
 
-func (f flipNormals) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (f *flipNormals) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	dec, rec := f.h.calcHit(randSource, r, min, max)
 	if dec {
-		rec.n = rec.n.Mul(-1.0)
+		//rec.n = rec.n.Mul(-1.0)
+		rec.n[0] *= -1.0
+		rec.n[1] *= -1.0
+		rec.n[2] *= -1.0
 		return dec, rec
 	}
 
 	return false, hit{}
 }
 
-func (f flipNormals) boundingBox(t0, t1 float64) (bool, aabb) {
+func (f *flipNormals) boundingBox(t0, t1 float64) (bool, aabb) {
 	return f.h.boundingBox(t0, t1)
 }

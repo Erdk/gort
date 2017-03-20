@@ -66,8 +66,8 @@ func (b *bvhSorter) Less(i, j int) bool {
 	return b.by(b.objs[i], b.objs[j])
 }
 
-func bvhNodeInit(objs []hitable, n int, time0, time1 float64) bvhNode {
-	b := bvhNode{}
+func bvhNodeInit(objs []hitable, n int, time0, time1 float64) *bvhNode {
+	b := &bvhNode{}
 	axis := int(3 * rand.Float64())
 
 	// sort by chosen axis
@@ -104,7 +104,7 @@ func bvhNodeInit(objs []hitable, n int, time0, time1 float64) bvhNode {
 	return b
 }
 
-func (b bvhNode) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (b *bvhNode) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	if b.box.hit(r, min, max) {
 		hitLeft, recLeft := b.left.calcHit(randSource, r, min, max)
 		hitRight, recRight := b.right.calcHit(randSource, r, min, max)
@@ -129,6 +129,6 @@ func (b bvhNode) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 	return false, hit{}
 }
 
-func (b bvhNode) boundingBox(t0, t1 float64) (bool, aabb) {
+func (b *bvhNode) boundingBox(t0, t1 float64) (bool, aabb) {
 	return true, b.box
 }
