@@ -12,8 +12,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/go-gl/mathgl/mgl64"
 )
 
 func BenchmarkGort(*testing.B) {
@@ -58,8 +56,8 @@ func BenchmarkGort(*testing.B) {
 		randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 		currentStripe, continueRun := wQ.getJob()
 		for continueRun {
-			for j := currentStripe.yStart; j < currentStripe.yEnd; j++ {
-				for i := currentStripe.xStart; i < currentStripe.xEnd; i++ {
+			for j := currentStripe.YStart; j < currentStripe.YEnd; j++ {
+				for i := currentStripe.XStart; i < currentStripe.XEnd; i++ {
 					col := computeXY(randSource, w, vp, i, j)
 					img.Set(i, *ny-j, color.RGBA{
 						uint8(col.X()),
@@ -69,7 +67,7 @@ func BenchmarkGort(*testing.B) {
 				}
 			}
 			if *progress {
-				progCounter.incrementCounter(uint((currentStripe.yEnd - currentStripe.yStart) * (currentStripe.xEnd - currentStripe.xStart)))
+				progCounter.incrementCounter(uint((currentStripe.YEnd - currentStripe.YStart) * (currentStripe.XEnd - currentStripe.XStart)))
 			}
 
 			currentStripe, continueRun = wQ.getJob()

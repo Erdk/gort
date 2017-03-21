@@ -1,10 +1,10 @@
-package main
+package rayengine
 
 import (
 	"math"
 	"math/rand"
 
-	. "github.com/Erdk/gort/types"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
 type viewport struct {
@@ -27,7 +27,7 @@ func randomInUnitDisk(randSource *rand.Rand) *Vec {
 	return p
 }
 
-func newVP(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) *viewport {
+func NewVP(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) *viewport {
 	var vp viewport
 	vp.lensRadius = aperture / 2.0
 	theta := vfov * math.Pi / 180.0

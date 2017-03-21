@@ -1,21 +1,21 @@
-package main
+package util
 
 import "sync"
 
-type stripe struct {
-	xStart, xEnd, yStart, yEnd int
+type Stripe struct {
+	XStart, XEnd, YStart, YEnd int
 }
 
-func parseStripe(stripeString string) (int, int, error) {
+func ParseStripe(stripeString string) (int, int, error) {
 	return 16, 16, nil
 }
 
 type queue struct {
-	q   []stripe
+	q   []Stripe
 	mtx *sync.Mutex
 }
 
-func newQueue(xMax, yMax, xStripe, yStripe int) *queue {
+func NewQueue(xMax, yMax, xStripe, yStripe int) *queue {
 	q := &queue{}
 	q.mtx = &sync.Mutex{}
 
@@ -29,7 +29,7 @@ func newQueue(xMax, yMax, xStripe, yStripe int) *queue {
 		numYStripes++
 	}
 
-	q.q = make([]stripe, numXStripes*numYStripes)
+	q.q = make([]Stripe, numXStripes*numYStripes)
 	for i := 0; i < numXStripes; i++ {
 		for j := 0; j < numYStripes; j++ {
 			xBound := (i + 1) * xStripe
@@ -40,11 +40,11 @@ func newQueue(xMax, yMax, xStripe, yStripe int) *queue {
 			if yBound > yMax {
 				yBound = yMax
 			}
-			q.q[i*numYStripes+j] = stripe{
-				xStart: i * xStripe,
-				xEnd:   xBound,
-				yStart: j * yStripe,
-				yEnd:   yBound,
+			q.q[i*numYStripes+j] = Stripe{
+				XStart: i * xStripe,
+				XEnd:   xBound,
+				YStart: j * yStripe,
+				YEnd:   yBound,
 			}
 		}
 	}
@@ -52,9 +52,9 @@ func newQueue(xMax, yMax, xStripe, yStripe int) *queue {
 	return q
 }
 
-func (q *queue) getJob() (stripe, bool) {
+func (q *queue) GetJob() (Stripe, bool) {
 	if len(q.q) == 0 {
-		return stripe{}, false
+		return Stripe{}, false
 	}
 
 	q.mtx.Lock()
