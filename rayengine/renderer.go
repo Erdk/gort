@@ -1,10 +1,10 @@
-package main
+package rayengine
 
 import (
 	"math"
 	"math/rand"
 
-	. "github.com/Erdk/gort/types"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
 func randomInUnitSphere(randSource *rand.Rand) *Vec {
@@ -19,7 +19,7 @@ func randomInUnitSphere(randSource *rand.Rand) *Vec {
 	return p
 }
 
-func retColor(randSource *rand.Rand, r *ray, w *world, depth int) (float64, float64, float64) {
+func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, float64, float64) {
 	if h, rec := w.calcHit(randSource, r, 0.000001, math.MaxFloat64); h {
 		emitR, emitG, emitB := rec.m.emit(rec.u, rec.v, rec.p)
 		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < 100 {
@@ -32,11 +32,11 @@ func retColor(randSource *rand.Rand, r *ray, w *world, depth int) (float64, floa
 	return 0.0, 0.0, 0.0
 }
 
-func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) *Vec {
+func ComputeXY(randSource *rand.Rand, w *World, vp *viewport, x, y, nx, ny, ns int) *Vec {
 	col := &Vec{0.0, 0.0, 0.0}
-	for s := 0; s < *ns; s++ {
-		u := (float64(x) + randSource.Float64()) / float64(*nx)
-		v := (float64(y) + randSource.Float64()) / float64(*ny)
+	for s := 0; s < ns; s++ {
+		u := (float64(x) + randSource.Float64()) / float64(nx)
+		v := (float64(y) + randSource.Float64()) / float64(ny)
 		r := vp.getRay(randSource, u, v)
 		rR, rG, rB := retColor(randSource, &r, w, 0)
 		col[0] += rR
@@ -44,7 +44,7 @@ func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) *Vec {
 		col[2] += rB
 	}
 
-	col = col.MulSI(1.0 / float64(*ns))
+	col = col.MulSI(1.0 / float64(ns))
 	col[0] = math.Sqrt(col[0]) * 255.99
 	col[1] = math.Sqrt(col[1]) * 255.99
 	col[2] = math.Sqrt(col[2]) * 255.99

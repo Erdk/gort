@@ -1,10 +1,10 @@
-package main
+package rayengine
 
 import (
 	"math"
 	"math/rand"
 
-	. "github.com/Erdk/gort/types"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
 type constantMedium struct {

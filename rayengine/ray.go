@@ -1,6 +1,6 @@
-package main
+package rayengine
 
-import . "github.com/Erdk/gort/types"
+import . "github.com/Erdk/gort/rayengine/types"
 
 type ray struct {
 	origin, direction *Vec
