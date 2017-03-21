@@ -4,29 +4,30 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/go-gl/mathgl/mgl64"
+	. "github.com/Erdk/gort/types"
 )
 
 type viewport struct {
-	lowerLeftCorner mgl64.Vec3
-	horizontal      mgl64.Vec3
-	vertical        mgl64.Vec3
-	origin          mgl64.Vec3
-	u, v, w         mgl64.Vec3
+	lowerLeftCorner *Vec
+	horizontal      *Vec
+	vertical        *Vec
+	origin          *Vec
+	u, v, w         *Vec
 	lensRadius      float64
 	time0, time1    float64
 }
 
-func randomInUnitDisk(randSource *rand.Rand) mgl64.Vec3 {
-	p := mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 0.0}
+func randomInUnitDisk(randSource *rand.Rand) *Vec {
+	p := &Vec{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 0.0}
 	for p.Dot(p) >= 1.0 {
-		p = mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 0.0}
+		p[0] = 2.0*randSource.Float64() - 1.0
+		p[1] = 2.0*randSource.Float64() - 1.0
 	}
 
 	return p
 }
 
-func newVP(lookfrom, lookat, vup mgl64.Vec3, vfov, aspect, aperture, focusDist, t0, t1 float64) *viewport {
+func newVP(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) *viewport {
 	var vp viewport
 	vp.lensRadius = aperture / 2.0
 	theta := vfov * math.Pi / 180.0
@@ -36,32 +37,25 @@ func newVP(lookfrom, lookat, vup mgl64.Vec3, vfov, aspect, aperture, focusDist, 
 	vp.time0 = t0
 	vp.time1 = t1
 	vp.origin = lookfrom
-	vp.w = lookfrom.Add(lookat.Mul(-1.0))
-	vp.w = vp.w.Normalize()
-	vp.u = vup.Cross(vp.w)
-	vp.u = vp.u.Normalize()
-	vp.v = vp.w.Cross(vp.u)
-	vp.lowerLeftCorner = vp.origin.Add(vp.u.Mul(-halfWidth * focusDist))
-	vp.lowerLeftCorner = vp.lowerLeftCorner.Add(vp.v.Mul(-halfHeight * focusDist))
-	vp.lowerLeftCorner = vp.lowerLeftCorner.Add(vp.w.Mul(-focusDist))
-	vp.horizontal = vp.u.Mul(2.0 * halfWidth * focusDist)
-	vp.vertical = vp.v.Mul(2.0 * halfHeight * focusDist)
+	vp.w = lookfrom.SubVI(lookat).Normalize()
+	vp.u = vup.CrossI(vp.w).Normalize()
+	vp.v = vp.w.CrossI(vp.u)
+	vp.lowerLeftCorner = vp.origin.AddVI(vp.u.MulSI(-halfWidth * focusDist))
+	vp.lowerLeftCorner.AddVM(vp.v.MulSI(-halfHeight * focusDist)).AddVM(vp.w.MulSI(-focusDist))
+	vp.horizontal = vp.u.MulSI(2.0 * halfWidth * focusDist)
+	vp.vertical = vp.v.MulSI(2.0 * halfHeight * focusDist)
 
 	return &vp
 }
 
 func (vp *viewport) getRay(randSource *rand.Rand, s, t float64) ray {
 	rd := randomInUnitDisk(randSource)
-	rd = rd.Mul(vp.lensRadius)
-	offset := vp.u.Mul(rd.X())
-	offset = offset.Add(vp.v.Mul(rd.Y()))
+	rd = rd.MulSI(vp.lensRadius)
+	offset := vp.u.MulSI(rd[0]).AddVM(vp.v.MulSI(rd[1]))
 
-	rayOri := vp.origin.Add(offset)
+	rayOri := vp.origin.AddVI(offset)
 
-	rayDir := vp.lowerLeftCorner.Add(vp.horizontal.Mul(s))
-	rayDir = rayDir.Add(vp.vertical.Mul(t)) //+ v * vertical - origin
-	rayDir = rayDir.Add(vp.origin.Mul(-1.0))
-	rayDir = rayDir.Add(offset.Mul(-1.0))
+	rayDir := vp.lowerLeftCorner.AddVI(vp.horizontal.MulSI(s)).AddVM(vp.vertical.MulSI(t)).AddVM(vp.origin.MulSI(-1.0)).AddVM(offset.MulSM(-1.0))
 	rayTime := vp.time0 + randSource.Float64()*(vp.time1-vp.time0)
-	return ray{&rayOri, &rayDir, rayTime}
+	return ray{rayOri, rayDir, rayTime}
 }
