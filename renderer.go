@@ -4,51 +4,50 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/go-gl/mathgl/mgl64"
+	. "github.com/Erdk/gort/types"
 )
 
-func randomInUnitSphere(randSource *rand.Rand) mgl64.Vec3 {
-	p := mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
+func randomInUnitSphere(randSource *rand.Rand) *Vec {
+	p := &Vec{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
 
 	for p.Len()*p.Len() >= 1.0 {
-		p = mgl64.Vec3{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
+		p[0] = 2.0*randSource.Float64() - 1.0
+		p[1] = 2.0*randSource.Float64() - 1.0
+		p[2] = 2.0*randSource.Float64() - 1.0
 	}
 
 	return p
 }
 
-func retColor(randSource *rand.Rand, r *ray, w *world, depth int) mgl64.Vec3 {
-	if h, rec := w.calcHit(randSource, r, 0.001, math.MaxFloat64); h {
-		emit := rec.m.emit(rec.u, rec.v, rec.p)
-		if decision, attenuation, scattered := rec.m.scatter(randSource, *r, rec); decision && depth < 50 {
-			tmp := retColor(randSource, scattered, w, depth+1)
-			return mgl64.Vec3{
-				emit.X() + attenuation.X()*tmp.X(),
-				emit.Y() + attenuation.Y()*tmp.Y(),
-				emit.Z() + attenuation.Z()*tmp.Z(),
-			}
+func retColor(randSource *rand.Rand, r *ray, w *world, depth int) (float64, float64, float64) {
+	if h, rec := w.calcHit(randSource, r, 0.000001, math.MaxFloat64); h {
+		emitR, emitG, emitB := rec.m.emit(rec.u, rec.v, rec.p)
+		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < 100 {
+			tmpR, tmpG, tmpB := retColor(randSource, scattered, w, depth+1)
+			return emitR + attenuationR*tmpR, emitG + attenuationG*tmpG, emitB + attenuationB*tmpB
 		}
 
-		return *emit
+		return emitR, emitG, emitB
 	}
-	return mgl64.Vec3{0.0, 0.0, 0.0}
+	return 0.0, 0.0, 0.0
 }
 
-func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) mgl64.Vec3 {
-	col := mgl64.Vec3{0.0, 0.0, 0.0}
+func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) *Vec {
+	col := &Vec{0.0, 0.0, 0.0}
 	for s := 0; s < *ns; s++ {
 		u := (float64(x) + randSource.Float64()) / float64(*nx)
 		v := (float64(y) + randSource.Float64()) / float64(*ny)
 		r := vp.getRay(randSource, u, v)
-		col = col.Add(retColor(randSource, &r, w, 0))
+		rR, rG, rB := retColor(randSource, &r, w, 0)
+		col[0] += rR
+		col[1] += rG
+		col[2] += rB
 	}
 
-	col = col.Mul(1.0 / float64(*ns))
-	col = mgl64.Vec3{
-		math.Sqrt(col.X()) * 255.99,
-		math.Sqrt(col.Y()) * 255.99,
-		math.Sqrt(col.Z()) * 255.99,
-	}
+	col = col.MulSI(1.0 / float64(*ns))
+	col[0] = math.Sqrt(col[0]) * 255.99
+	col[1] = math.Sqrt(col[1]) * 255.99
+	col[2] = math.Sqrt(col[2]) * 255.99
 
 	// "normalize" colours
 	for i := range col {
@@ -60,5 +59,6 @@ func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) mgl64.Ve
 			col[i] = 0.0
 		}
 	}
+
 	return col
 }

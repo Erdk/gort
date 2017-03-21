@@ -8,7 +8,7 @@ import (
 
 type bvhNode struct {
 	left, right hitable
-	box         aabb
+	box         *aabb
 }
 
 type By func(o1, o2 hitable) bool
@@ -26,7 +26,7 @@ func byX(o1, o2 hitable) bool {
 		fmt.Printf("byX: No bounding box for o1: %v and o2: %v\n", o1, o2)
 	}
 
-	return o1Box.min.X() < o2Box.min.X()
+	return o1Box.min[0] < o2Box.min[0]
 }
 func byY(o1, o2 hitable) bool {
 	o1Bound, o1Box := o1.boundingBox(0.0, 0.0)
@@ -36,7 +36,7 @@ func byY(o1, o2 hitable) bool {
 		fmt.Printf("byY: No bounding box for o1: %v and o2: %v\n", o1, o2)
 	}
 
-	return o1Box.min.Y() < o2Box.min.Y()
+	return o1Box.min[1] < o2Box.min[1]
 }
 func byZ(o1, o2 hitable) bool {
 	o1Bound, o1Box := o1.boundingBox(0.0, 0.0)
@@ -46,7 +46,7 @@ func byZ(o1, o2 hitable) bool {
 		fmt.Printf("byZ: No bounding box for o1: %v and o2: %v\n", o1, o2)
 	}
 
-	return o1Box.min.Z() < o2Box.min.Z()
+	return o1Box.min[2] < o2Box.min[2]
 }
 
 type bvhSorter struct {
@@ -129,6 +129,6 @@ func (b *bvhNode) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool
 	return false, hit{}
 }
 
-func (b *bvhNode) boundingBox(t0, t1 float64) (bool, aabb) {
+func (b *bvhNode) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return true, b.box
 }
