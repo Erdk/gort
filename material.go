@@ -8,29 +8,30 @@ import (
 )
 
 type material interface {
-	scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuation *Vec, scattered *ray)
-	emit(u, v float64, p *Vec) *Vec
+	scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray)
+	emit(u, v float64, p *Vec) (float64, float64, float64)
 }
 
 type lambertian struct {
 	Albedo texture
+	Emit   texture
 }
 
 func newLambertianRGB(r, g, b float64) material {
-	return &lambertian{constantTexture{&Vec{r, g, b}}}
+	return &lambertian{&constantTexture{&Vec{r, g, b}}, &constantTexture{&Vec{0.0, 0.0, 0.0}}}
 }
 
-func (l *lambertian) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuation *Vec, scattered *ray) {
+func (l *lambertian) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
 	in.origin = rec.p
-	in.direction = rec.n.AddVM(randomInUnitSphere(randSource))
+	in.direction = rec.normal.AddVM(randomInUnitSphere(randSource))
 	scattered = in
-	attenuation = l.Albedo.value(rec.u, rec.v, rec.p)
+	attenuationR, attenuationG, attenuationB = l.Albedo.value(rec.u, rec.v, rec.p)
 	decision = true
 	return
 }
 
-func (l *lambertian) emit(u, v float64, p *Vec) *Vec {
-	return &Vec{}
+func (l *lambertian) emit(u, v float64, p *Vec) (float64, float64, float64) {
+	return l.Emit.value(u, v, p)
 }
 
 func reflectvec(v, n *Vec) *Vec {
@@ -50,18 +51,20 @@ func newMetalRGB(fuzz, r, g, b float64) material {
 	return &metal{Albedo: &Vec{r, g, b}, Fuzz: fuzz}
 }
 
-func (m *metal) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuation *Vec, scattered *ray) {
-	reflected := reflectvec(in.direction.Normalize(), rec.n).AddVM(randomInUnitSphere(randSource).MulSM(m.Fuzz))
+func (m *metal) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
+	reflected := reflectvec(in.direction.Normalize(), rec.normal).AddVM(randomInUnitSphere(randSource).MulSM(m.Fuzz))
 	in.origin = rec.p
 	in.direction = reflected
 	scattered = in
-	attenuation = m.Albedo
-	decision = scattered.direction.Dot(rec.n) > 0.0
+	attenuationR = m.Albedo[0]
+	attenuationG = m.Albedo[1]
+	attenuationB = m.Albedo[2]
+	decision = scattered.direction.Dot(rec.normal) > 0.0
 	return
 }
 
-func (m *metal) emit(u, v float64, p *Vec) *Vec {
-	return &Vec{}
+func (m *metal) emit(u, v float64, p *Vec) (float64, float64, float64) {
+	return 0.0, 0.0, 0.0
 }
 
 func refract(v, n *Vec, niOverNt float64) (bool, *Vec) {
@@ -97,21 +100,23 @@ func newDielectricRGB(refIdx, r, g, b float64) material {
 	return &dielectric{refIdx, &Vec{r, g, b}}
 }
 
-func (d *dielectric) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuation *Vec, scattered *ray) {
-	reflected := reflectvec(in.direction, rec.n)
-	attenuation = d.Attenuation
+func (d *dielectric) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
+	reflected := reflectvec(in.direction, rec.normal)
+	attenuationR = d.Attenuation[0]
+	attenuationG = d.Attenuation[1]
+	attenuationB = d.Attenuation[2]
 	var niOverNt float64
 	var cosine float64
 	var reflectProbe float64
 	var outwardNormal *Vec
-	if in.direction.Dot(rec.n) > 0.0 {
-		outwardNormal = rec.n.MulSI(-1.0)
+	if in.direction.Dot(rec.normal) > 0.0 {
+		outwardNormal = rec.normal.NegI()
 		niOverNt = d.RefIdx
-		cosine = d.RefIdx * in.direction.Dot(rec.n) / in.direction.Len()
+		cosine = d.RefIdx * in.direction.Dot(rec.normal) / in.direction.Len()
 	} else {
-		outwardNormal = rec.n
+		outwardNormal = rec.normal
 		niOverNt = 1.0 / d.RefIdx
-		cosine = -1.0 * in.direction.Dot(rec.n) * in.direction.Len()
+		cosine = -1.0 * in.direction.Dot(rec.normal) / in.direction.Len()
 	}
 
 	ifRefract, refracted := refract(in.direction, outwardNormal, niOverNt)
@@ -131,8 +136,8 @@ func (d *dielectric) scatter(randSource *rand.Rand, in *ray, rec hit) (decision 
 	return
 }
 
-func (d *dielectric) emit(u, v float64, p *Vec) *Vec {
-	return &Vec{0.0, 0.0, 0.0}
+func (d *dielectric) emit(u, v float64, p *Vec) (float64, float64, float64) {
+	return 0.0, 0.0, 0.0
 }
 
 type diffuseLight struct {
@@ -140,14 +145,14 @@ type diffuseLight struct {
 }
 
 func newDiffuseLightRGB(r, g, b float64) material {
-	return &diffuseLight{constantTexture{&Vec{r, g, b}}}
+	return &diffuseLight{&constantTexture{&Vec{r, g, b}}}
 }
 
-func (d *diffuseLight) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuation *Vec, scattered *ray) {
-	return false, nil, nil
+func (d *diffuseLight) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
+	return false, 0.0, 0.0, 0.0, nil
 }
 
-func (d *diffuseLight) emit(u, v float64, p *Vec) *Vec {
+func (d *diffuseLight) emit(u, v float64, p *Vec) (float64, float64, float64) {
 	return d.emitTexture.value(u, v, p)
 }
 
@@ -156,17 +161,17 @@ type isotropicMaterial struct {
 }
 
 func newIsotropicMaterialRGB(r, g, b float64) material {
-	return &isotropicMaterial{constantTexture{&Vec{r, g, b}}}
+	return &isotropicMaterial{&constantTexture{&Vec{r, g, b}}}
 }
 
-func (i isotropicMaterial) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuation *Vec, scattered *ray) {
+func (i *isotropicMaterial) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
 	randVec := randomInUnitSphere(randSource)
 	scattered = &ray{rec.p, randVec, 0.0}
-	attenuation = i.Albedo.value(rec.u, rec.v, rec.p)
+	attenuationR, attenuationG, attenuationB = i.Albedo.value(rec.u, rec.v, rec.p)
 
-	return true, attenuation, scattered
+	return
 }
 
-func (i isotropicMaterial) emit(u, v float64, p *Vec) *Vec {
-	return &Vec{0.0, 0.0, 0.0}
+func (i *isotropicMaterial) emit(u, v float64, p *Vec) (float64, float64, float64) {
+	return 0.0, 0.0, 0.0
 }
