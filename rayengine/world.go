@@ -1,24 +1,24 @@
-package main
+package rayengine
 
 import (
 	"math/rand"
 
-	. "github.com/Erdk/gort/types"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
-type world struct {
+type World struct {
 	Objs hitlist
 }
 
-func (w *world) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {
+func (w *World) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {
 	return w.Objs.calcHit(randSource, r, tMin, tMax)
 }
 
-func (w *world) boundingBox(t0, t1 float64) (bool, *aabb) {
+func (w *World) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return w.Objs.boundingBox(t0, t1)
 }
 
-func perlinTest(w *world) {
+func PerlinTest(w *World) {
 	w.Objs = make([]hitable, 6)
 
 	// materials
@@ -39,7 +39,7 @@ func perlinTest(w *world) {
 	w.Objs[5] = &sphere{&Vec{278.0, 278.0, 278.0}, 130, perlin}
 }
 
-func lightAndRectTest(w *world) {
+func LightAndRectTest(w *World) {
 	w.Objs = make([]hitable, 4)
 	perlinTex := &noiseTexture{4.0}
 	w.Objs[0] = &sphere{
@@ -60,7 +60,7 @@ func lightAndRectTest(w *world) {
 	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, newDiffuseLightRGB(4.0, 4.0, 4.0)}
 }
 
-func cornellBox(w *world) {
+func CornellBox(w *World) {
 	w.Objs = make([]hitable, 8)
 	red := newLambertianRGB(0.65, 0.05, 0.05)
 	white := newLambertianRGB(0.73, 0.73, 0.73)
@@ -83,7 +83,7 @@ func cornellBox(w *world) {
 	w.Objs[7] = &constantMedium{b2, 0.01, newIsotropicMaterialRGB(0.0, 0.0, 0.0)}
 }
 
-func testTexture(w *world) {
+func TestTexture(w *World) {
 	w.Objs = make([]hitable, 7)
 
 	// materials
@@ -112,7 +112,7 @@ func testTexture(w *world) {
 }
 
 // colorVolWorld: generates scene with room and 3 dielectric spheres, middle one contains volume object
-func colorVolWorld(w *world) {
+func ColorVolWorld(w *World) {
 	w.Objs = make([]hitable, 8)
 
 	// materials
@@ -153,7 +153,7 @@ func colorVolWorld(w *world) {
 	w.Objs[7] = &constantMedium{boxBoundary, 0.0005, newIsotropicMaterialRGB(0.3, 0.3, 0.3)}
 }
 
-func generateWorld(w *world) {
+func GenerateWorld(w *World) {
 	w.Objs = make([]hitable, 500)
 	i := 0
 
@@ -258,7 +258,7 @@ func generateWorld(w *world) {
 		Material: newMetalRGB(0.0, 0.7, 0.6, 0.5)}
 }
 
-func generateWorld2(w *world) {
+func GenerateWorld2(w *World) {
 	const nb = 20
 	l := 0
 	w.Objs = make([]hitable, 30)

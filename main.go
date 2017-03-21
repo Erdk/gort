@@ -16,7 +16,9 @@ import (
 
 	"runtime"
 
-	. "github.com/Erdk/gort/types"
+	re "github.com/Erdk/gort/rayengine"
+	. "github.com/Erdk/gort/rayengine/types"
+	"github.com/Erdk/gort/util"
 	"github.com/pkg/profile"
 )
 
@@ -44,8 +46,9 @@ func main() {
 	default:
 	}
 
+	var progCounter *util.ProgressCounter
 	if *progress {
-		progCounter = newProgressCounter(uint(*nx * *ny))
+		progCounter = util.NewProgressCounter(uint(*nx * *ny))
 	}
 
 	// seed random number generator
@@ -56,9 +59,9 @@ func main() {
 	distToFocus := 10.0
 	aperture := 0.0
 	vfov := 40.0
-	vp := newVP(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
+	vp := re.NewVP(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
 
-	w := &world{}
+	w := &re.World{}
 
 	if *input != "" {
 		fd, _ := os.Open(*input)
@@ -75,7 +78,7 @@ func main() {
 		//cornellBox(w)
 		//generateWorld2(w)
 		//testTexture(w)
-		colorVolWorld(w)
+		re.ColorVolWorld(w)
 
 		if *saveraw {
 			raw, err := json.Marshal(*w)
@@ -94,11 +97,11 @@ func main() {
 
 	img := image.NewRGBA(image.Rect(0, 0, int(*nx), int(*ny)))
 
-	xStripe, yStripe, err := parseStripe(*computeUnit)
+	xStripe, yStripe, err := util.ParseStripe(*computeUnit)
 	if err != nil {
 		panic("Wrong stripe format!")
 	}
-	wQ := newQueue(*nx, *ny, xStripe, yStripe)
+	wQ := util.NewQueue(*nx, *ny, xStripe, yStripe)
 
 	var wg sync.WaitGroup
 	if *nt == 0 {
@@ -108,12 +111,12 @@ func main() {
 
 	f := func(threadNum int) {
 		defer wg.Done()
-		currentStripe, continueRun := wQ.getJob()
+		currentStripe, continueRun := wQ.GetJob()
 		for continueRun {
 			randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
-			for j := currentStripe.yStart; j < currentStripe.yEnd; j++ {
-				for i := currentStripe.xStart; i < currentStripe.xEnd; i++ {
-					col := computeXY(randSource, w, vp, i, j)
+			for j := currentStripe.YStart; j < currentStripe.YEnd; j++ {
+				for i := currentStripe.XStart; i < currentStripe.XEnd; i++ {
+					col := re.ComputeXY(randSource, w, vp, i, j, *nx, *ny, *ns)
 					img.Set(i, *ny-j-1, color.RGBA{
 						uint8(col[0]),
 						uint8(col[1]),
@@ -123,10 +126,10 @@ func main() {
 			}
 
 			if *progress {
-				progCounter.incrementCounter(uint((currentStripe.yEnd - currentStripe.yStart) * (currentStripe.xEnd - currentStripe.xStart)))
+				progCounter.IncrementCounter(uint((currentStripe.YEnd - currentStripe.YStart) * (currentStripe.XEnd - currentStripe.XStart)))
 			}
 
-			currentStripe, continueRun = wQ.getJob()
+			currentStripe, continueRun = wQ.GetJob()
 		}
 	}
 

@@ -1,4 +1,4 @@
-package main
+package rayengine
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 	"image/jpeg"
 	"image/png"
 
-	"github.com/Erdk/gort/perlin"
-	. "github.com/Erdk/gort/types"
+	"github.com/Erdk/gort/rayengine/perlin"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
 type texture interface {

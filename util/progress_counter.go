@@ -1,19 +1,17 @@
-package main
+package util
 
 import (
 	"fmt"
 	"sync"
 )
 
-type progressCounter struct {
+type ProgressCounter struct {
 	counter, max, lastPrinted uint
 	mtx                       *sync.Mutex
 }
 
-var progCounter *progressCounter
-
-func newProgressCounter(pixelNum uint) *progressCounter {
-	pC := &progressCounter{}
+func NewProgressCounter(pixelNum uint) *ProgressCounter {
+	pC := &ProgressCounter{}
 	pC.counter = 0
 	pC.max = pixelNum
 	pC.lastPrinted = 0
@@ -22,7 +20,7 @@ func newProgressCounter(pixelNum uint) *progressCounter {
 	return pC
 }
 
-func (p *progressCounter) incrementCounter(count uint) {
+func (p *ProgressCounter) IncrementCounter(count uint) {
 	p.mtx.Lock()
 	p.counter += count
 	newPrinted := uint(float64(p.counter) / float64(p.max) * 100)

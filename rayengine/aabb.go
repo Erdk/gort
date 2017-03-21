@@ -1,9 +1,9 @@
-package main
+package rayengine
 
 import (
 	"math"
 
-	. "github.com/Erdk/gort/types"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
 type aabb struct {

@@ -6,7 +6,7 @@ import (
 
 	"math"
 
-	. "github.com/Erdk/gort/types"
+	. "github.com/Erdk/gort/rayengine/types"
 )
 
 var randSource *rand.Rand
