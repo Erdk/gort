@@ -34,6 +34,6 @@ func (b *box) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hi
 	return b.Faces.calcHit(randSource, r, min, max)
 }
 
-func (b *box) boundingBox(t0, t1 float64) (bool, aabb) {
+func (b *box) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return b.Faces.boundingBox(t0, t1)
 }

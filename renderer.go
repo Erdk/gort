@@ -19,21 +19,17 @@ func randomInUnitSphere(randSource *rand.Rand) *Vec {
 	return p
 }
 
-func retColor(randSource *rand.Rand, r *ray, w *world, depth int) *Vec {
-	if h, rec := w.calcHit(randSource, r, 0.001, math.MaxFloat64); h {
-		emit := rec.m.emit(rec.u, rec.v, rec.p)
-		if decision, attenuation, scattered := rec.m.scatter(randSource, r, rec); decision && depth < 50 {
-			tmp := retColor(randSource, scattered, w, depth+1)
-			return &Vec{
-				emit[0] + attenuation[0]*tmp[0],
-				emit[1] + attenuation[1]*tmp[1],
-				emit[2] + attenuation[2]*tmp[2],
-			}
+func retColor(randSource *rand.Rand, r *ray, w *world, depth int) (float64, float64, float64) {
+	if h, rec := w.calcHit(randSource, r, 0.000001, math.MaxFloat64); h {
+		emitR, emitG, emitB := rec.m.emit(rec.u, rec.v, rec.p)
+		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < 100 {
+			tmpR, tmpG, tmpB := retColor(randSource, scattered, w, depth+1)
+			return emitR + attenuationR*tmpR, emitG + attenuationG*tmpG, emitB + attenuationB*tmpB
 		}
 
-		return emit
+		return emitR, emitG, emitB
 	}
-	return &Vec{0.0, 0.0, 0.0}
+	return 0.0, 0.0, 0.0
 }
 
 func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) *Vec {
@@ -42,7 +38,10 @@ func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) *Vec {
 		u := (float64(x) + randSource.Float64()) / float64(*nx)
 		v := (float64(y) + randSource.Float64()) / float64(*ny)
 		r := vp.getRay(randSource, u, v)
-		col.AddVM(retColor(randSource, &r, w, 0))
+		rR, rG, rB := retColor(randSource, &r, w, 0)
+		col[0] += rR
+		col[1] += rG
+		col[2] += rB
 	}
 
 	col = col.MulSI(1.0 / float64(*ns))
@@ -60,5 +59,6 @@ func computeXY(randSource *rand.Rand, w *world, vp *viewport, x, y int) *Vec {
 			col[i] = 0.0
 		}
 	}
+
 	return col
 }

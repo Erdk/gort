@@ -7,10 +7,10 @@ import (
 )
 
 type hit struct {
-	t    float64
-	u, v float64
-	p, n *Vec
-	m    material
+	t         float64
+	u, v      float64
+	p, normal *Vec
+	m         material
 }
 
 type hitable interface {
@@ -18,7 +18,7 @@ type hitable interface {
 	// min: begin of time slice
 	// max: end of time slice
 	calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit)
-	boundingBox(t0, t1 float64) (bool, aabb)
+	boundingBox(t0, t1 float64) (bool, *aabb)
 }
 
 type hitlist []hitable
@@ -45,9 +45,9 @@ func (h hitlist) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 	return false, hit{}
 }
 
-func (h hitlist) boundingBox(t0, t1 float64) (bool, aabb) {
+func (h hitlist) boundingBox(t0, t1 float64) (bool, *aabb) {
 	if len(h) < 1 {
-		return false, aabb{}
+		return false, nil
 	}
 
 	firstTrue, tempBox := h[0].boundingBox(t0, t1)

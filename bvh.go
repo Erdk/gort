@@ -8,7 +8,7 @@ import (
 
 type bvhNode struct {
 	left, right hitable
-	box         aabb
+	box         *aabb
 }
 
 type By func(o1, o2 hitable) bool
@@ -129,6 +129,6 @@ func (b *bvhNode) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool
 	return false, hit{}
 }
 
-func (b *bvhNode) boundingBox(t0, t1 float64) (bool, aabb) {
+func (b *bvhNode) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return true, b.box
 }

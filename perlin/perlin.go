@@ -30,17 +30,17 @@ func Noise(p *Vec) float64 {
 	return perlinInterpolation(c, u, v, w)
 }
 
-func Turbulance(p *Vec, depth ...int) float64 {
+func Turbulance(p *Vec, depth *int) float64 {
 	turbDepth := 7
-	if len(depth) > 0 {
-		turbDepth = depth[0]
+	if depth != nil {
+		turbDepth = *depth
 	}
 
 	accum := 0.0
 	weight := 1.0
-	tempP := *p
+	tempP := p.Copy()
 	for i := 0; i < turbDepth; i++ {
-		accum += weight * Noise(&tempP)
+		accum += weight * Noise(tempP)
 		weight *= 0.5
 		tempP.MulSM(2.0)
 	}
@@ -88,19 +88,18 @@ func init() {
 	}
 
 	// shuffle perm X
-	for i := len(permX) - 1; i > 1; i-- {
+	for i := len(permX) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
 		permX[i], permX[j] = permX[j], permX[i]
 	}
 	// shuffle perm Y
-	for i := len(permY) - 1; i > 1; i-- {
+	for i := len(permY) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
 		permY[i], permY[j] = permY[j], permY[i]
 	}
 	// shuffle perm Z
-	for i := len(permZ) - 1; i > 1; i-- {
+	for i := len(permZ) - 1; i > 0; i-- {
 		j := rand.Intn(i + 1)
 		permZ[i], permZ[j] = permZ[j], permZ[i]
 	}
-
 }

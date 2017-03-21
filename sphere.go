@@ -27,10 +27,9 @@ func (s *sphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (boo
 		if temp < tMax && temp > tMin {
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
-			rec.n = rec.p.SubVI(s.Center).DivSM(s.Radius)
+			rec.normal = rec.p.SubVI(s.Center).DivSM(s.Radius)
 			rec.m = s.Material
-			rec.u, rec.v = getSphereUV((rec.p.SubVI(s.Center)).DivSM(s.Radius))
-			//fmt.Printf("sphere u: %v v: %v\n", rec.u, rec.v)
+			rec.u, rec.v = getSphereUV(rec.normal)
 			return true, rec
 		}
 
@@ -38,10 +37,9 @@ func (s *sphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (boo
 		if temp < tMax && temp > tMin {
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
-			rec.n = rec.p.SubVI(s.Center).DivSM(1.0 / s.Radius)
+			rec.normal = rec.p.SubVI(s.Center).DivSM(s.Radius)
 			rec.m = s.Material
-			rec.u, rec.v = getSphereUV((rec.p.SubVI(s.Center)).DivSM(s.Radius))
-			//fmt.Printf("sphere u: %v v: %v\n", rec.u, rec.v)
+			rec.u, rec.v = getSphereUV(rec.normal)
 			return true, rec
 		}
 	}
@@ -49,8 +47,8 @@ func (s *sphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (boo
 	return false, hit{}
 }
 
-func (s *sphere) boundingBox(t0, ti float64) (bool, aabb) {
-	return true, aabb{s.Center.SubSI(s.Radius), s.Center.AddSI(s.Radius)}
+func (s *sphere) boundingBox(t0, ti float64) (bool, *aabb) {
+	return true, &aabb{s.Center.SubSI(s.Radius), s.Center.AddSI(s.Radius)}
 }
 
 func getSphereUV(p *Vec) (u, v float64) {
@@ -82,7 +80,7 @@ func (m *movingSphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64
 			var rec hit
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
-			rec.n = rec.p.SubVI(m.center(r.time)).DivSM(m.Radius)
+			rec.normal = rec.p.SubVI(m.center(r.time)).DivSM(m.Radius)
 			rec.m = m.Material
 			return true, rec
 		}
@@ -92,7 +90,7 @@ func (m *movingSphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64
 			var rec hit
 			rec.t = temp
 			rec.p = r.pointAtParam(rec.t)
-			rec.n = rec.p.SubVI(m.center(r.time)).DivSM(m.Radius)
+			rec.normal = rec.p.SubVI(m.center(r.time)).DivSM(m.Radius)
 			rec.m = m.Material
 			return true, rec
 		}
@@ -101,9 +99,9 @@ func (m *movingSphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64
 	return false, hit{}
 }
 
-func (m *movingSphere) boundingBox(t0, ti float64) (bool, aabb) {
-	aabb0 := aabb{m.Center0.SubSI(m.Radius), m.Center0.AddSI(m.Radius)}
-	aabb1 := aabb{m.Center1.SubSI(m.Radius), m.Center1.AddSI(m.Radius)}
+func (m *movingSphere) boundingBox(t0, ti float64) (bool, *aabb) {
+	aabb0 := &aabb{m.Center0.SubSI(m.Radius), m.Center0.AddSI(m.Radius)}
+	aabb1 := &aabb{m.Center1.SubSI(m.Radius), m.Center1.AddSI(m.Radius)}
 
 	return true, surroundingBox(aabb0, aabb1)
 }
@@ -121,7 +119,7 @@ func (m *movingSphere) center(time float64) *Vec {
 	return m.Center0
 }
 
-func surroundingBox(box0, box1 aabb) aabb {
+func surroundingBox(box0, box1 *aabb) *aabb {
 	small := &Vec{
 		math.Min(box0.min[0], box1.min[0]),
 		math.Min(box0.min[1], box1.min[1]),
@@ -132,5 +130,5 @@ func surroundingBox(box0, box1 aabb) aabb {
 		math.Max(box0.max[1], box1.max[1]),
 		math.Max(box0.max[2], box1.max[2]),
 	}
-	return aabb{small, large}
+	return &aabb{small, large}
 }

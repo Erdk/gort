@@ -89,6 +89,21 @@ func (v *Vec) MulSI(a float64) *Vec {
 	return &nv
 }
 
+func (v *Vec) NegM() *Vec {
+	v[0] = -v[0]
+	v[1] = -v[1]
+	v[2] = -v[2]
+	return v
+}
+
+func (v *Vec) NegI() *Vec {
+	nv := *v
+	nv[0] = -nv[0]
+	nv[1] = -nv[1]
+	nv[2] = -nv[2]
+	return &nv
+}
+
 func (v *Vec) DivSM(a float64) *Vec {
 	v[0] /= a
 	v[1] /= a
