@@ -12,7 +12,7 @@ type translate struct {
 	Offset *Vec
 }
 
-func (t translate) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (t *translate) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	movedOrigin := r.origin.SubVI(t.Offset)
 	movedRay := ray{movedOrigin, r.direction, r.time}
 
@@ -24,23 +24,23 @@ func (t translate) calcHit(randSource *rand.Rand, r *ray, min, max float64) (boo
 	return false, hit{}
 }
 
-func (t translate) boundingBox(t0, t1 float64) (bool, aabb) {
+func (t *translate) boundingBox(t0, t1 float64) (bool, *aabb) {
 	if decision, box := t.Objs.boundingBox(t0, t1); decision {
-		return true, aabb{box.min.AddVI(t.Offset), box.max.AddVI(t.Offset)}
+		return true, &aabb{box.min.AddVI(t.Offset), box.max.AddVI(t.Offset)}
 	}
 
-	return false, aabb{}
+	return false, nil
 }
 
 type rotateY struct {
 	Obj                hitable
 	SinTheta, CosTheta float64
 	HasBox             bool
-	Box                aabb
+	Box                *aabb
 }
 
 func NewRotateY(obj hitable, angle float64) *rotateY {
-	ry := &rotateY{}
+	ry := rotateY{}
 	ry.Obj = obj
 	radians := math.Pi / 180.0 * angle
 	ry.SinTheta = math.Sin(radians)
@@ -70,9 +70,9 @@ func NewRotateY(obj hitable, angle float64) *rotateY {
 		}
 	}
 
-	ry.Box = aabb{min, max}
+	ry.Box = &aabb{min, max}
 
-	return ry
+	return &ry
 }
 
 func (ry *rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
@@ -85,19 +85,19 @@ func (ry *rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (boo
 	rotatedRay := ray{&origin, &direction, r.time}
 	if decision, rec := ry.Obj.calcHit(randSource, &rotatedRay, min, max); decision {
 		p := rec.p
-		n := rec.n
+		normal := rec.normal
 		p[0] = ry.CosTheta*rec.p[0] + ry.SinTheta*rec.p[2]
 		p[2] = -ry.SinTheta*rec.p[0] + ry.CosTheta*rec.p[2]
-		n[0] = ry.CosTheta*rec.n[0] + ry.SinTheta*rec.n[2]
-		n[2] = -ry.SinTheta*rec.n[0] + ry.CosTheta*rec.n[2]
+		normal[0] = ry.CosTheta*rec.normal[0] + ry.SinTheta*rec.normal[2]
+		normal[2] = -ry.SinTheta*rec.normal[0] + ry.CosTheta*rec.normal[2]
 		rec.p = p
-		rec.n = n
+		rec.normal = normal
 		return true, rec
 	}
 
 	return false, hit{}
 }
 
-func (ry *rotateY) boundingBox(t0, t1 float64) (bool, aabb) {
+func (ry *rotateY) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return ry.HasBox, ry.Box
 }
