@@ -7,6 +7,8 @@ import (
 	. "github.com/Erdk/gort/rayengine/types"
 )
 
+const maxdepth = 5
+
 func randomInUnitSphere(randSource *rand.Rand) *Vec {
 	p := &Vec{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
 
@@ -22,7 +24,7 @@ func randomInUnitSphere(randSource *rand.Rand) *Vec {
 func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, float64, float64) {
 	if h, rec := w.calcHit(randSource, r, 0.000001, math.MaxFloat64); h {
 		emitR, emitG, emitB := rec.m.emit(rec.u, rec.v, rec.p)
-		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < 100 {
+		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < maxdepth {
 			tmpR, tmpG, tmpB := retColor(randSource, scattered, w, depth+1)
 			return emitR + attenuationR*tmpR, emitG + attenuationG*tmpG, emitB + attenuationB*tmpB
 		}
@@ -32,12 +34,12 @@ func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, floa
 	return 0.0, 0.0, 0.0
 }
 
-func ComputeXY(randSource *rand.Rand, w *World, vp *viewport, x, y, nx, ny, ns int) *Vec {
+func ComputeXY(randSource *rand.Rand, w *World, cam *camera, x, y, nx, ny, ns int) *Vec {
 	col := &Vec{0.0, 0.0, 0.0}
 	for s := 0; s < ns; s++ {
 		u := (float64(x) + randSource.Float64()) / float64(nx)
 		v := (float64(y) + randSource.Float64()) / float64(ny)
-		r := vp.getRay(randSource, u, v)
+		r := cam.getRay(randSource, u, v)
 		rR, rG, rB := retColor(randSource, &r, w, 0)
 		col[0] += rR
 		col[1] += rG
