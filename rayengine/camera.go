@@ -7,7 +7,7 @@ import (
 	. "github.com/Erdk/gort/rayengine/types"
 )
 
-type viewport struct {
+type camera struct {
 	lowerLeftCorner *Vec
 	horizontal      *Vec
 	vertical        *Vec
@@ -27,35 +27,42 @@ func randomInUnitDisk(randSource *rand.Rand) *Vec {
 	return p
 }
 
-func NewVP(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) *viewport {
-	var vp viewport
-	vp.lensRadius = aperture / 2.0
+func NewCamera(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) *camera {
+	var cam camera
+	cam.lensRadius = aperture / 2.0
+
 	theta := vfov * math.Pi / 180.0
 	halfHeight := math.Tan(theta / 2.0)
 	halfWidth := aspect * halfHeight
 
-	vp.time0 = t0
-	vp.time1 = t1
-	vp.origin = lookfrom
-	vp.w = lookfrom.SubVI(lookat).Normalize()
-	vp.u = vup.CrossI(vp.w).Normalize()
-	vp.v = vp.w.CrossI(vp.u)
-	vp.lowerLeftCorner = vp.origin.AddVI(vp.u.MulSI(-halfWidth * focusDist))
-	vp.lowerLeftCorner.AddVM(vp.v.MulSI(-halfHeight * focusDist)).AddVM(vp.w.MulSI(-focusDist))
-	vp.horizontal = vp.u.MulSI(2.0 * halfWidth * focusDist)
-	vp.vertical = vp.v.MulSI(2.0 * halfHeight * focusDist)
+	cam.time0 = t0
+	cam.time1 = t1
+	cam.origin = lookfrom
+	cam.w = lookfrom.SubVI(lookat).Normalize()
+	cam.u = vup.CrossI(cam.w).Normalize()
+	cam.v = cam.w.CrossI(cam.u)
+	cam.lowerLeftCorner = cam.origin.AddVI(cam.u.MulSI(-halfWidth * focusDist))
+	cam.lowerLeftCorner.
+		AddVM(cam.v.MulSI(-halfHeight * focusDist)).
+		AddVM(cam.w.MulSI(-focusDist))
+	cam.horizontal = cam.u.MulSI(2.0 * halfWidth * focusDist)
+	cam.vertical = cam.v.MulSI(2.0 * halfHeight * focusDist)
 
-	return &vp
+	return &cam
 }
 
-func (vp *viewport) getRay(randSource *rand.Rand, s, t float64) ray {
+func (cam *camera) getRay(randSource *rand.Rand, s, t float64) ray {
 	rd := randomInUnitDisk(randSource)
-	rd = rd.MulSI(vp.lensRadius)
-	offset := vp.u.MulSI(rd[0]).AddVM(vp.v.MulSI(rd[1]))
+	rd = rd.MulSI(cam.lensRadius)
+	offset := cam.u.MulSI(rd[0]).AddVM(cam.v.MulSI(rd[1]))
 
-	rayOri := vp.origin.AddVI(offset)
+	rayOri := cam.origin.AddVI(offset)
 
-	rayDir := vp.lowerLeftCorner.AddVI(vp.horizontal.MulSI(s)).AddVM(vp.vertical.MulSI(t)).AddVM(vp.origin.MulSI(-1.0)).AddVM(offset.MulSM(-1.0))
-	rayTime := vp.time0 + randSource.Float64()*(vp.time1-vp.time0)
+	rayDir := cam.lowerLeftCorner.
+		AddVI(cam.horizontal.MulSI(s)).
+		AddVM(cam.vertical.MulSI(t)).
+		AddVM(cam.origin.MulSI(-1.0)).
+		AddVM(offset.MulSM(-1.0))
+	rayTime := cam.time0 + randSource.Float64()*(cam.time1-cam.time0)
 	return ray{rayOri, rayDir, rayTime}
 }

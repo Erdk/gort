@@ -59,7 +59,7 @@ func main() {
 	distToFocus := 10.0
 	aperture := 0.0
 	vfov := 40.0
-	vp := re.NewVP(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
+	cam := re.NewCamera(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
 
 	w := &re.World{}
 
@@ -116,7 +116,7 @@ func main() {
 			randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 			for j := currentStripe.YStart; j < currentStripe.YEnd; j++ {
 				for i := currentStripe.XStart; i < currentStripe.XEnd; i++ {
-					col := re.ComputeXY(randSource, w, vp, i, j, *nx, *ny, *ns)
+					col := re.ComputeXY(randSource, w, cam, i, j, *nx, *ny, *ns)
 					img.Set(i, *ny-j-1, color.RGBA{
 						uint8(col[0]),
 						uint8(col[1]),
