@@ -15,6 +15,14 @@ type queue struct {
 	mtx *sync.Mutex
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+
+	return b
+}
+
 func NewQueue(xMax, yMax, xStripe, yStripe int) *queue {
 	q := &queue{}
 	q.mtx = &sync.Mutex{}
@@ -32,19 +40,11 @@ func NewQueue(xMax, yMax, xStripe, yStripe int) *queue {
 	q.q = make([]Stripe, numXStripes*numYStripes)
 	for i := 0; i < numXStripes; i++ {
 		for j := 0; j < numYStripes; j++ {
-			xBound := (i + 1) * xStripe
-			if xBound > xMax {
-				xBound = xMax
-			}
-			yBound := (j + 1) * yStripe
-			if yBound > yMax {
-				yBound = yMax
-			}
 			q.q[i*numYStripes+j] = Stripe{
 				XStart: i * xStripe,
-				XEnd:   xBound,
+				XEnd:   min((i+1)*xStripe, xMax),
 				YStart: j * yStripe,
-				YEnd:   yBound,
+				YEnd:   min((j+1)*yStripe, yMax),
 			}
 		}
 	}
