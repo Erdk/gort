@@ -8,13 +8,13 @@ import (
 )
 
 type camera struct {
-	lowerLeftCorner *Vec
-	horizontal      *Vec
-	vertical        *Vec
-	origin          *Vec
-	u, v, w         *Vec
-	lensRadius      float64
-	time0, time1    float64
+	LowerLeftCorner *Vec
+	Horizontal      *Vec
+	Vertical        *Vec
+	Origin          *Vec
+	U, V, W         *Vec
+	LensRadius      float64
+	Time0, Time1    float64
 }
 
 func randomInUnitDisk(randSource *rand.Rand) *Vec {
@@ -27,42 +27,42 @@ func randomInUnitDisk(randSource *rand.Rand) *Vec {
 	return p
 }
 
-func NewCamera(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) *camera {
+func NewCamera(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) camera {
 	var cam camera
-	cam.lensRadius = aperture / 2.0
+	cam.LensRadius = aperture / 2.0
 
 	theta := vfov * math.Pi / 180.0
 	halfHeight := math.Tan(theta / 2.0)
 	halfWidth := aspect * halfHeight
 
-	cam.time0 = t0
-	cam.time1 = t1
-	cam.origin = lookfrom
-	cam.w = lookfrom.SubVI(lookat).Normalize()
-	cam.u = vup.CrossI(cam.w).Normalize()
-	cam.v = cam.w.CrossI(cam.u)
-	cam.lowerLeftCorner = cam.origin.AddVI(cam.u.MulSI(-halfWidth * focusDist))
-	cam.lowerLeftCorner.
-		AddVM(cam.v.MulSI(-halfHeight * focusDist)).
-		AddVM(cam.w.MulSI(-focusDist))
-	cam.horizontal = cam.u.MulSI(2.0 * halfWidth * focusDist)
-	cam.vertical = cam.v.MulSI(2.0 * halfHeight * focusDist)
+	cam.Time0 = t0
+	cam.Time1 = t1
+	cam.Origin = lookfrom
+	cam.W = lookfrom.SubVI(lookat).Normalize()
+	cam.U = vup.CrossI(cam.W).Normalize()
+	cam.V = cam.W.CrossI(cam.U)
+	cam.LowerLeftCorner = cam.Origin.AddVI(cam.U.MulSI(-halfWidth * focusDist))
+	cam.LowerLeftCorner.
+		AddVM(cam.V.MulSI(-halfHeight * focusDist)).
+		AddVM(cam.W.MulSI(-focusDist))
+	cam.Horizontal = cam.U.MulSI(2.0 * halfWidth * focusDist)
+	cam.Vertical = cam.V.MulSI(2.0 * halfHeight * focusDist)
 
-	return &cam
+	return cam
 }
 
 func (cam *camera) getRay(randSource *rand.Rand, s, t float64) ray {
 	rd := randomInUnitDisk(randSource)
-	rd = rd.MulSI(cam.lensRadius)
-	offset := cam.u.MulSI(rd[0]).AddVM(cam.v.MulSI(rd[1]))
+	rd = rd.MulSI(cam.LensRadius)
+	offset := cam.U.MulSI(rd[0]).AddVM(cam.V.MulSI(rd[1]))
 
-	rayOri := cam.origin.AddVI(offset)
+	rayOri := cam.Origin.AddVI(offset)
 
-	rayDir := cam.lowerLeftCorner.
-		AddVI(cam.horizontal.MulSI(s)).
-		AddVM(cam.vertical.MulSI(t)).
-		AddVM(cam.origin.MulSI(-1.0)).
+	rayDir := cam.LowerLeftCorner.
+		AddVI(cam.Horizontal.MulSI(s)).
+		AddVM(cam.Vertical.MulSI(t)).
+		AddVM(cam.Origin.MulSI(-1.0)).
 		AddVM(offset.MulSM(-1.0))
-	rayTime := cam.time0 + randSource.Float64()*(cam.time1-cam.time0)
+	rayTime := cam.Time0 + randSource.Float64()*(cam.Time1-cam.Time0)
 	return ray{rayOri, rayDir, rayTime}
 }

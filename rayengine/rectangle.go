@@ -103,11 +103,11 @@ func (yz *yzrect) boundingBox(t0, t1 float64) (bool, *aabb) {
 }
 
 type flipNormals struct {
-	h hitable
+	H hitable
 }
 
 func (f *flipNormals) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
-	dec, rec := f.h.calcHit(randSource, r, min, max)
+	dec, rec := f.H.calcHit(randSource, r, min, max)
 	if dec {
 		rec.normal.NegM()
 		return dec, rec
@@ -117,5 +117,5 @@ func (f *flipNormals) calcHit(randSource *rand.Rand, r *ray, min, max float64) (
 }
 
 func (f *flipNormals) boundingBox(t0, t1 float64) (bool, *aabb) {
-	return f.h.boundingBox(t0, t1)
+	return f.H.boundingBox(t0, t1)
 }
