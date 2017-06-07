@@ -119,7 +119,7 @@ func ColorVolWorld(w *World) {
 	// materials
 
 	white := newLambertianRGB(0.73, 0.73, 0.73)
-	//red := newLambertianRGB(0.65, 0.05, 0.05)
+	red := newLambertianRGB(0.65, 0.05, 0.05)
 	//blue := newLambertianRGB(0.05, 0.05, 0.65)
 	//green := newLambertianRGB(0.12, 0.45, 0.15)
 
@@ -154,6 +154,14 @@ func ColorVolWorld(w *World) {
 	//w.Objs[6] = &sphere{&Vec{417.0, 317.0, 217.0}, 40, red}
 	//w.Objs[7] = &sphere{&Vec{317.0, 417.0, 217.0}, 40, green}
 	//w.Objs[8] = &sphere{&Vec{217.0, 417.0, 317.0}, 40, blue}
+
+	w.Objs[9] = &triangle{
+		&Vec{0.0, 0.0, 100.0},     // A
+		&Vec{555.0, 0.0, 100.0},   // B
+		&Vec{276.0, 555.0, 400.0}, // C
+		red,
+		false,
+	}
 
 	//w.Objs[10] = &triangle{
 	//	&Vec{0.0, 0.0, 554.0},
