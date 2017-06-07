@@ -7,6 +7,7 @@ import (
 )
 
 type World struct {
+	Cam  camera
 	Objs hitlist
 }
 
@@ -113,24 +114,28 @@ func TestTexture(w *World) {
 
 // colorVolWorld: generates scene with room and 3 dielectric spheres, middle one contains volume object
 func ColorVolWorld(w *World) {
-	w.Objs = make([]hitable, 8)
+	w.Objs = make([]hitable, 10)
 
 	// materials
-	//red := newLambertianRGB(0.65, 0.05, 0.05)
-	white := newLambertianRGB(0.73, 0.73, 0.73)
-	//green := newLambertianRGB(0.12, 0.45, 0.15)
-	//light := newDiffuseLightRGB(7.0, 7.0, 7.0)
-	earthTexture, err := getImageTexture("static/earthmap.jpg")
-	if err != nil {
-		panic("CANNOT LOAD TEXTURE!")
-	}
-	earthMat := &lambertian{earthTexture, earthTexture}
 
-	moonTexture, err := getImageTexture("static/moonmap.jpg")
-	if err != nil {
-		panic("CANNOT LOAD TEXTURE!")
-	}
-	moonMat := &lambertian{moonTexture, moonTexture}
+	white := newLambertianRGB(0.73, 0.73, 0.73)
+	//red := newLambertianRGB(0.65, 0.05, 0.05)
+	//blue := newLambertianRGB(0.05, 0.05, 0.65)
+	//green := newLambertianRGB(0.12, 0.45, 0.15)
+
+	light := newDiffuseLightRGB(1.0, 1.0, 1.0)
+
+	//earthTexture, err := getImageTexture("static/earthmap.jpg")
+	//if err != nil {
+	//	panic("CANNOT LOAD TEXTURE!")
+	//}
+	//earthMat := &lambertian{earthTexture, earthTexture}
+
+	//moonTexture, err := getImageTexture("static/moonmap.jpg")
+	//if err != nil {
+	//	panic("CANNOT LOAD TEXTURE!")
+	//}
+	//moonMat := &lambertian{moonTexture, moonTexture}
 
 	// objects
 
@@ -138,19 +143,29 @@ func ColorVolWorld(w *World) {
 	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	//	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
-	w.Objs[2] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[2] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, light}}
 	w.Objs[3] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	w.Objs[4] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-
 	// Earth
-	w.Objs[5] = &sphere{&Vec{208.0, 208.0, 208.0}, 140, earthMat}
-
+	//w.Objs[5] = &sphere{&Vec{208.0, 208.0, 208.0}, 140, earthMat}
+	//	w.Objs[5] = &sphere{&Vec{278.0, 208.0, 278.0}, 140, light}
 	// Moom
-	w.Objs[6] = &sphere{&Vec{417.0, 417.0, 417.0}, 40, moonMat}
+	//w.Objs[6] = &sphere{&Vec{417.0, 417.0, 417.0}, 40, moonMat}
+	//w.Objs[6] = &sphere{&Vec{417.0, 317.0, 217.0}, 40, red}
+	//w.Objs[7] = &sphere{&Vec{317.0, 417.0, 217.0}, 40, green}
+	//w.Objs[8] = &sphere{&Vec{217.0, 417.0, 317.0}, 40, blue}
+
+	//w.Objs[10] = &triangle{
+	//	&Vec{0.0, 0.0, 554.0},
+	//	&Vec{278.0, 555.0, 554.0},
+	//	&Vec{555.0, 0.0, 554.0},
+	//	red,
+	//	true,
+	//}
 
 	// "mist"
-	boxBoundary := NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{555.0, 555.0, 555.0}, newDielectric(1.5))
-	w.Objs[7] = &constantMedium{boxBoundary, 0.0005, newIsotropicMaterialRGB(0.3, 0.3, 0.3)}
+	//boxBoundary := NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{555.0, 555.0, 555.0}, newDielectric(1.5))
+	//w.Objs[7] = &constantMedium{boxBoundary, 0.0005, newIsotropicMaterialRGB(0.3, 0.3, 0.3)}
 }
 
 func GenerateWorld(w *World) {
