@@ -24,7 +24,7 @@ import (
 
 var nx = flag.Int("w", 640, "width of rendered image")
 var ny = flag.Int("h", 480, "height of rendered image")
-var ns = flag.Int("s", 400, "samples per pixel")
+var ns = flag.Int("s", 1000, "samples per pixel")
 var nt = flag.Int("t", 1, "number of parallel threads")
 var output = flag.String("o", "output", "filename without extension")
 var input = flag.String("i", "", "instead of generating world render one from file")
@@ -54,14 +54,15 @@ func main() {
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
-	lookfrom := &Vec{278.0, 278.0, -800}
+	w := &re.World{}
+
+	lookfrom := &Vec{278.0, 278.0, -700}
 	lookat := &Vec{278.0, 278.0, 0.0}
 	distToFocus := 10.0
 	aperture := 0.0
 	vfov := 40.0
-	cam := re.NewCamera(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov, float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
-
-	w := &re.World{}
+	w.Cam = re.NewCamera(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov,
+		float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
 
 	if *input != "" {
 		fd, _ := os.Open(*input)
@@ -106,6 +107,7 @@ func main() {
 	var wg sync.WaitGroup
 	if *nt == 0 {
 		*nt = runtime.NumCPU()
+		runtime.GOMAXPROCS(*nt)
 	}
 	wg.Add(int(*nt))
 
@@ -116,7 +118,7 @@ func main() {
 			randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 			for j := currentStripe.YStart; j < currentStripe.YEnd; j++ {
 				for i := currentStripe.XStart; i < currentStripe.XEnd; i++ {
-					col := re.ComputeXY(randSource, w, cam, i, j, *nx, *ny, *ns)
+					col := re.ComputeXY(randSource, w, i, j, *nx, *ny, *ns)
 					img.Set(i, *ny-j-1, color.RGBA{
 						uint8(col[0]),
 						uint8(col[1]),

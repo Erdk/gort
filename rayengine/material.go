@@ -18,7 +18,9 @@ type lambertian struct {
 }
 
 func newLambertianRGB(r, g, b float64) material {
-	return &lambertian{&constantTexture{&Vec{r, g, b}}, &constantTexture{&Vec{0.0, 0.0, 0.0}}}
+	return &lambertian{
+		&constantTexture{&Vec{r, g, b}},
+		&constantTexture{&Vec{0.0, 0.0, 0.0}}}
 }
 
 func (l *lambertian) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
