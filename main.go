@@ -12,12 +12,9 @@ import (
 
 	"time"
 
-	"encoding/json"
-
 	"runtime"
 
 	re "github.com/Erdk/gort/rayengine"
-	. "github.com/Erdk/gort/rayengine/types"
 	"github.com/Erdk/gort/util"
 	"github.com/pkg/profile"
 )
@@ -46,54 +43,19 @@ func main() {
 	default:
 	}
 
-	var progCounter *util.ProgressCounter
+	var progressCounter *util.ProgressCounter
 	if *progress {
-		progCounter = util.NewProgressCounter(uint(*nx * *ny))
+		progressCounter = util.NewProgressCounter(uint(*nx * *ny))
 	}
 
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
 	w := &re.World{}
-
-	lookfrom := &Vec{278.0, 278.0, -700}
-	lookat := &Vec{278.0, 278.0, 0.0}
-	distToFocus := 10.0
-	aperture := 0.0
-	vfov := 40.0
-	w.Cam = re.NewCamera(lookfrom, lookat, &Vec{0.0, 1.0, 0.0}, vfov,
-		float64(*nx)/float64(*ny), aperture, distToFocus, 0.0, 1.0)
-
 	if *input != "" {
-		fd, _ := os.Open(*input)
-		defer fd.Close()
-		dec := json.NewDecoder(fd)
-		if err := dec.Decode(w); err != nil {
-			fmt.Printf("Cannot read scene: %s", err.Error())
-			os.Exit(1)
-		}
+		w = re.NewWorld(*input, float64(*nx), float64(*ny))
 	} else {
-		//generateWorld(w)
-		//perlinTest(w)
-		//lightAndRectTest(w)
-		//cornellBox(w)
-		//generateWorld2(w)
-		//testTexture(w)
-		re.ColorVolWorld(w)
-
-		if *saveraw {
-			raw, err := json.Marshal(*w)
-			if err != nil {
-				fmt.Printf("Cannot marshall scene: %s", err.Error())
-				os.Exit(1)
-			}
-
-			fd, _ := os.Create(*output + ".json")
-			defer fd.Close()
-			if _, err := fd.Write(raw); err != nil {
-				fmt.Printf("Cannot write raw json with scene: %s\n", err.Error())
-			}
-		}
+		w = re.NewWorld("colorVolWorld", float64(*nx), float64(*ny))
 	}
 
 	img := image.NewRGBA(image.Rect(0, 0, int(*nx), int(*ny)))
@@ -128,7 +90,7 @@ func main() {
 			}
 
 			if *progress {
-				progCounter.IncrementCounter(uint((currentStripe.YEnd - currentStripe.YStart) * (currentStripe.XEnd - currentStripe.XStart)))
+				progressCounter.IncrementCounter(uint((currentStripe.YEnd - currentStripe.YStart) * (currentStripe.XEnd - currentStripe.XStart)))
 			}
 
 			currentStripe, continueRun = wQ.GetJob()
