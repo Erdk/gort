@@ -13,24 +13,23 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>// gort renderer
-// Copyright (C) 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
 
-package cmd
+package rayengine
 
 import (
-	"github.com/spf13/cobra"
+	"math/rand"
 )
 
-var minionCmd = &cobra.Command{
-	Use:   "minion",
-	Short: "",
-	Long:  "",
-	Run: func(cmd *cobra.Command, args []string) {
-		panic("not implemented")
-	},
+type World struct {
+	Cam  camera
+	Objs hitlist
 }
 
-func init() {
-	RootCmd.AddCommand(minionCmd)
+func (w *World) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {
+	return w.Objs.calcHit(randSource, r, tMin, tMax)
+}
+
+func (w *World) boundingBox(t0, t1 float64) (bool, *aabb) {
+	return w.Objs.boundingBox(t0, t1)
 }

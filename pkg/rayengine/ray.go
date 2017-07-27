@@ -13,24 +13,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>// gort renderer
-// Copyright (C) 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
 
-package cmd
+package rayengine
 
-import (
-	"github.com/spf13/cobra"
-)
-
-var minionCmd = &cobra.Command{
-	Use:   "minion",
-	Short: "",
-	Long:  "",
-	Run: func(cmd *cobra.Command, args []string) {
-		panic("not implemented")
-	},
+type ray struct {
+	origin, direction *Vec
+	time              float64
 }
 
-func init() {
-	RootCmd.AddCommand(minionCmd)
+func (r *ray) pointAtParam(t float64) *Vec {
+	v := &Vec{}
+	v[0] = r.origin[0] + r.direction[0]*t
+	v[1] = r.origin[1] + r.direction[1]*t
+	v[2] = r.origin[2] + r.direction[2]*t
+	return v
 }
