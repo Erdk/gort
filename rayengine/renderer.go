@@ -34,9 +34,9 @@ func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, floa
 	return 0.0, 0.0, 0.0
 }
 
-func ComputeXY(randSource *rand.Rand, w *World, x, y, nx, ny, ns int) *Vec {
+func ComputeXY(randSource *rand.Rand, w *World, x, y, nx, ny, ns uint) *Vec {
 	col := &Vec{0.0, 0.0, 0.0}
-	for s := 0; s < ns; s++ {
+	for s := uint(0); s < ns; s++ {
 		u := (float64(x) + randSource.Float64()) / float64(nx)
 		v := (float64(y) + randSource.Float64()) / float64(ny)
 		r := w.Cam.getRay(randSource, u, v)
