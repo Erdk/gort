@@ -28,13 +28,12 @@ import (
 	"sync"
 	"time"
 
-	re "github.com/Erdk/gort/rayengine"
-	"github.com/Erdk/gort/util"
+	re "github.com/Erdk/gort/pkg/rayengine"
+	"github.com/Erdk/gort/pkg/util"
 	"github.com/pkg/profile"
 	"github.com/spf13/cobra"
 )
 
-// renderCmd represents the render command
 var renderCmd = &cobra.Command{
 	Use:   "render",
 	Short: "Render scene",

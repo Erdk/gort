@@ -13,24 +13,31 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>// gort renderer
-// Copyright (C) 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
 
-package cmd
+package rayengine
 
 import (
-	"github.com/spf13/cobra"
+	"math"
 )
 
-var minionCmd = &cobra.Command{
-	Use:   "minion",
-	Short: "",
-	Long:  "",
-	Run: func(cmd *cobra.Command, args []string) {
-		panic("not implemented")
-	},
+type aabb struct {
+	min, max *Vec
 }
 
-func init() {
-	RootCmd.AddCommand(minionCmd)
+func (a *aabb) hit(r *ray, tmin, tmax float64) bool {
+	for i := 0; i < 3; i++ {
+		t0 := math.Min((a.min[i]-r.origin[i])/r.direction[i],
+			(a.max[i]-r.origin[i])/r.direction[i])
+		t1 := math.Max((a.min[i]-r.origin[i])/r.direction[i],
+			(a.max[i]-r.origin[i])/r.direction[i])
+		tmin = math.Max(t0, tmin)
+		tmax = math.Min(t1, tmax)
+		if tmax <= tmin {
+			return false
+		}
+
+	}
+
+	return true
 }

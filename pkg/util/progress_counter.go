@@ -13,24 +13,37 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>// gort renderer
-// Copyright (C) 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
 
-package cmd
+package util
 
 import (
-	"github.com/spf13/cobra"
+	"fmt"
+	"sync"
 )
 
-var minionCmd = &cobra.Command{
-	Use:   "minion",
-	Short: "",
-	Long:  "",
-	Run: func(cmd *cobra.Command, args []string) {
-		panic("not implemented")
-	},
+type ProgressCounter struct {
+	counter, max, lastPrinted uint
+	mtx                       *sync.Mutex
 }
 
-func init() {
-	RootCmd.AddCommand(minionCmd)
+func NewProgressCounter(pixelNum uint) *ProgressCounter {
+	pC := &ProgressCounter{}
+	pC.counter = 0
+	pC.max = pixelNum
+	pC.lastPrinted = 0
+	pC.mtx = &sync.Mutex{}
+
+	return pC
+}
+
+func (p *ProgressCounter) IncrementCounter(count uint) {
+	p.mtx.Lock()
+	p.counter += count
+	newPrinted := uint(float64(p.counter) / float64(p.max) * 100)
+	if newPrinted > p.lastPrinted {
+		p.lastPrinted = newPrinted
+		fmt.Printf("\r%d%%", p.lastPrinted)
+	}
+	p.mtx.Unlock()
 }
