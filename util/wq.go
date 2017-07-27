@@ -3,10 +3,10 @@ package util
 import "sync"
 
 type Stripe struct {
-	XStart, XEnd, YStart, YEnd int
+	XStart, XEnd, YStart, YEnd uint
 }
 
-func ParseStripe(stripeString string) (int, int, error) {
+func ParseStripe(stripeString string) (uint, uint, error) {
 	return 16, 16, nil
 }
 
@@ -15,7 +15,7 @@ type queue struct {
 	mtx *sync.Mutex
 }
 
-func min(a, b int) int {
+func min(a, b uint) uint {
 	if a < b {
 		return a
 	}
@@ -23,7 +23,7 @@ func min(a, b int) int {
 	return b
 }
 
-func NewQueue(xMax, yMax, xStripe, yStripe int) *queue {
+func NewQueue(xMax, yMax, xStripe, yStripe uint) *queue {
 	q := &queue{}
 	q.mtx = &sync.Mutex{}
 
@@ -38,8 +38,8 @@ func NewQueue(xMax, yMax, xStripe, yStripe int) *queue {
 	}
 
 	q.q = make([]Stripe, numXStripes*numYStripes)
-	for i := 0; i < numXStripes; i++ {
-		for j := 0; j < numYStripes; j++ {
+	for i := uint(0); i < numXStripes; i++ {
+		for j := uint(0); j < numYStripes; j++ {
 			q.q[i*numYStripes+j] = Stripe{
 				XStart: i * xStripe,
 				XEnd:   min((i+1)*xStripe, xMax),
