@@ -1,17 +1,32 @@
-package perlin
+// gort renderer
+// Copyright (C) 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+
+package rayengine
 
 import (
 	"math/rand"
 	"time"
 
 	"math"
-
-	. "github.com/Erdk/gort/rayengine/types"
 )
 
 var randSource *rand.Rand
 
-func Noise(p *Vec) float64 {
+func perlinNoise(p *Vec) float64 {
 	u := p[0] - math.Floor(p[0])
 	v := p[1] - math.Floor(p[1])
 	w := p[2] - math.Floor(p[2])
@@ -30,7 +45,7 @@ func Noise(p *Vec) float64 {
 	return perlinInterpolation(c, u, v, w)
 }
 
-func Turbulance(p *Vec, depth *int) float64 {
+func perlinTurbulance(p *Vec, depth *int) float64 {
 	turbDepth := 7
 	if depth != nil {
 		turbDepth = *depth
@@ -40,7 +55,7 @@ func Turbulance(p *Vec, depth *int) float64 {
 	weight := 1.0
 	tempP := p.Copy()
 	for i := 0; i < turbDepth; i++ {
-		accum += weight * Noise(tempP)
+		accum += weight * perlinNoise(tempP)
 		weight *= 0.5
 		tempP.MulSM(2.0)
 	}
