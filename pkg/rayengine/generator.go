@@ -35,7 +35,7 @@ func NewWorld(preset string, nx, ny float64) *World {
 		lightAndRectTest(w)
 		return w
 	case "cornellBox":
-		cornellBox(w)
+		cornellBox(w, nx, ny)
 		return w
 	case "testTexture":
 		testTexture(w)
@@ -95,7 +95,14 @@ func lightAndRectTest(w *World) {
 	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, newDiffuseLightRGB(4.0, 4.0, 4.0)}
 }
 
-func cornellBox(w *World) {
+func cornellBox(w *World, nx, ny float64) {
+	lookFrom := &Vec{278.0, 278.0, -700}
+	lookAt := &Vec{278.0, 278.0, 0.0}
+	distToFocus := 10.0
+	aperture := 0.0
+	vFov := 40.0
+	w.Cam = NewCamera(lookFrom, lookAt, &Vec{0.0, 1.0, 0.0}, vFov, float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
+
 	w.Objs = make([]hitable, 8)
 	red := newLambertianRGB(0.65, 0.05, 0.05)
 	white := newLambertianRGB(0.73, 0.73, 0.73)
