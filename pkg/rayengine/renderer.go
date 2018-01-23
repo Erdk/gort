@@ -45,11 +45,11 @@ func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, floa
 			// 	fmt.Printf("scatteringPdf != pdf !!!: scatteringPdf %v pdf %v\n", scatteringPdf, pdf)
 			// }
 			tmpR, tmpG, tmpB := retColor(randSource, scattered, w, depth+1)
-			diff := 1.0 - pdf/scatteringPdf
-			if diff > -0.9999 && diff < 0.0001 {
-				diff = 1.0
-			}
-			return emitR + attenuationR*diff*tmpR, emitG + attenuationG*diff*tmpG, emitB + attenuationB*diff*tmpB
+			// diff := 1.0 - pdf/scatteringPdf
+			// if diff > -0.000001 && diff < 0.000001 {
+			// 	diff = 1.0
+			// }
+			return emitR + attenuationR*tmpR*scatteringPdf/pdf, emitG + attenuationG*tmpG*scatteringPdf/pdf, emitB + attenuationB*tmpB*scatteringPdf/pdf
 		}
 
 		return emitR, emitG, emitB
