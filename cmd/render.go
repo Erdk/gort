@@ -60,7 +60,7 @@ func init() {
 	// Flags
 	renderCmd.Flags().UintVarP(&nx, "width", "w", 640, "width of rendered image, default: 640")
 	renderCmd.Flags().UintVarP(&ny, "height", "e", 480, "width of rendered image, default: 480")
-	renderCmd.Flags().UintVarP(&ns, "samples", "s", 500, "width of rendered image, default: 500")
+	renderCmd.Flags().UintVarP(&ns, "samples", "s", 100, "width of rendered image, default: 500")
 	renderCmd.Flags().UintVarP(&nt, "threads", "t", 1, "width of rendered image, default: 1, 0 to launch one thread per CPU")
 	renderCmd.Flags().StringVarP(&output, "output", "o", "output", "filename without extension, default: output")
 	renderCmd.Flags().StringVar(&scene, "scene", "", "chose scene to render, default: colVolWorld")

@@ -39,9 +39,17 @@ func randomInUnitSphere(randSource *rand.Rand) *Vec {
 func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, float64, float64) {
 	if h, rec := w.calcHit(randSource, r, 0.000001, math.MaxFloat64); h {
 		emitR, emitG, emitB := rec.m.emit(rec.u, rec.v, rec.p)
-		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < maxdepth {
+		if decision, attenuationR, attenuationG, attenuationB, pdf, scattered := rec.m.scatter(randSource, r, rec); decision && depth < maxdepth {
+			scatteringPdf := rec.m.scatteringPdf(randSource, r, &rec, scattered)
+			// if scatteringPdf != pdf {
+			// 	fmt.Printf("scatteringPdf != pdf !!!: scatteringPdf %v pdf %v\n", scatteringPdf, pdf)
+			// }
 			tmpR, tmpG, tmpB := retColor(randSource, scattered, w, depth+1)
-			return emitR + attenuationR*tmpR, emitG + attenuationG*tmpG, emitB + attenuationB*tmpB
+			diff := 1.0 - pdf/scatteringPdf
+			if diff > -0.9999 && diff < 0.0001 {
+				diff = 1.0
+			}
+			return emitR + attenuationR*diff*tmpR, emitG + attenuationG*diff*tmpG, emitB + attenuationB*diff*tmpB
 		}
 
 		return emitR, emitG, emitB
