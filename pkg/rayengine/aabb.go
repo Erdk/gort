@@ -27,12 +27,10 @@ type aabb struct {
 
 func (a *aabb) hit(r *ray, tmin, tmax float64) bool {
 	for i := 0; i < 3; i++ {
-		t0 := math.Min((a.min[i]-r.origin[i])/r.direction[i],
-			(a.max[i]-r.origin[i])/r.direction[i])
-		t1 := math.Max((a.min[i]-r.origin[i])/r.direction[i],
-			(a.max[i]-r.origin[i])/r.direction[i])
-		tmin = math.Max(t0, tmin)
-		tmax = math.Min(t1, tmax)
+		amini := (a.min[i] - r.origin[i]) / r.direction[i]
+		amaxi := (a.max[i] - r.origin[i]) / r.direction[i]
+		tmin = math.Max(tmin, math.Min(amini, amaxi))
+		tmax = math.Min(tmax, math.Max(amini, amaxi))
 		if tmax <= tmin {
 			return false
 		}

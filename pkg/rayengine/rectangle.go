@@ -122,10 +122,10 @@ type flipNormals struct {
 }
 
 func (f *flipNormals) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
-	dec, rec := f.H.calcHit(randSource, r, min, max)
-	if dec {
-		rec.normal.NegM()
-		return dec, rec
+	decision, hitRecord := f.H.calcHit(randSource, r, min, max)
+	if decision {
+		hitRecord.normal.NegM()
+		return decision, hitRecord
 	}
 
 	return false, hit{}
