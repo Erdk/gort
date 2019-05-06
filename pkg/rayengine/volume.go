@@ -31,7 +31,7 @@ type constantMedium struct {
 func (c *constantMedium) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	var rec hit
 	if decision, rec1 := c.Boundary.calcHit(randSource, r, -math.MaxFloat64, math.MaxFloat64); decision {
-		if decision, rec2 := c.Boundary.calcHit(randSource, r, rec1.t+0.0001, math.MaxFloat64); decision {
+		if decision, rec2 := c.Boundary.calcHit(randSource, r, rec1.t+EPSILON*10, math.MaxFloat64); decision {
 			if rec1.t < min {
 				rec1.t = min
 			}

@@ -46,10 +46,12 @@ func (h hitlist) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 		if v == nil {
 			continue
 		}
-		if h, rec := v.calcHit(randSource, r, min, closestSoFar); h {
-			hitAnything = true
-			closestSoFar = rec.t
-			pointOfHit = rec
+		if hitted, rec := v.calcHit(randSource, r, min, closestSoFar); hitted {
+			if !InCloseRange(r.origin[0], rec.p[0]) && !InCloseRange(r.origin[1], rec.p[1]) && !InCloseRange(r.origin[2], rec.p[2]) {
+				hitAnything = true
+				closestSoFar = rec.t
+				pointOfHit = rec
+			}
 		}
 	}
 

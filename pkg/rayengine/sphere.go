@@ -121,9 +121,6 @@ func (m *movingSphere) boundingBox(t0, ti float64) (bool, *aabb) {
 	return true, surroundingBox(aabb0, aabb1)
 }
 
-// EPSILON constant for checking if two float numbers are the same
-const EPSILON = 0.0000001
-
 func (m *movingSphere) center(time float64) *Vec {
 	if m.Time1-m.Time0 > EPSILON {
 		tmp := (time - m.Time0) / (m.Time1 - m.Time0)

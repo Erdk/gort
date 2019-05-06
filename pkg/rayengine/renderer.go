@@ -22,7 +22,7 @@ import (
 	"math/rand"
 )
 
-const maxdepth = 5
+const maxdepth = 7
 
 func randomInUnitSphere(randSource *rand.Rand) *Vec {
 	p := &Vec{
@@ -30,21 +30,20 @@ func randomInUnitSphere(randSource *rand.Rand) *Vec {
 		2.0*randSource.Float64() - 1.0,
 		2.0*randSource.Float64() - 1.0,
 	}
-	p.Normalize()
 
-	// for p.Len()*p.Len() >= 1.0 {
-	// 	p[0] = 2.0*randSource.Float64() - 1.0
-	// 	p[1] = 2.0*randSource.Float64() - 1.0
-	// 	p[2] = 2.0*randSource.Float64() - 1.0
-	// }
+	for p.Len()*p.Len() <= EPSILON {
+		p[0] = 2.0*randSource.Float64() - 1.0
+		p[1] = 2.0*randSource.Float64() - 1.0
+		p[2] = 2.0*randSource.Float64() - 1.0
+	}
 
-	return p
+	return p.Normalize()
 }
 
 func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, float64, float64) {
-	if h, rec := w.calcHit(randSource, r, 0.000001, math.MaxFloat64); h {
-		emitR, emitG, emitB := rec.m.emit(rec.u, rec.v, rec.p)
-		if decision, attenuationR, attenuationG, attenuationB, scattered := rec.m.scatter(randSource, r, rec); decision && depth < maxdepth {
+	if h, pointOfHit := w.calcHit(randSource, r, EPSILON, math.MaxFloat64); h {
+		emitR, emitG, emitB := pointOfHit.m.emit(pointOfHit.u, pointOfHit.v, pointOfHit.p)
+		if decision, attenuationR, attenuationG, attenuationB, scattered := pointOfHit.m.scatter(randSource, r, pointOfHit); decision && depth < maxdepth {
 			tmpR, tmpG, tmpB := retColor(randSource, scattered, w, depth+1)
 			return emitR + attenuationR*tmpR, emitG + attenuationG*tmpG, emitB + attenuationB*tmpB
 		}
