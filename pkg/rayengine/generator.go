@@ -172,15 +172,33 @@ func defRoomOneTriangle(w *World, nx, ny float64) {
 	red := newLambertianRGB(0.85, 0.05, 0.05)
 
 	// triangle
-	w.Objs = append(
-		w.Objs,
-		&triangle{
-			&Vec{0.0, 0.0, 0.0},
-			&Vec{555.0, 0.0, 0.0},
-			&Vec{278.5, 555.0, 554.0},
-			red,
-			true,
-		})
+	// bottom
+	v11 := &Vec{60.0, 0.0, 278.5}
+	v12 := &Vec{205.0, 0.0, 278.5}
+	v13 := &Vec{350.0, 0.0, 278.5}
+	v14 := &Vec{495.0, 0.0, 278.5}
+	// second tier
+	v21 := &Vec{132.5, 125.57, 278.5}
+	v22 := &Vec{277.5, 125.57, 278.5}
+	v23 := &Vec{422.5, 125.57, 278.5}
+	// third tier
+	v31 := &Vec{205.0, 251.14, 278.5}
+	v32 := &Vec{350.0, 251.14, 278.5}
+	// forth tier
+	v41 := &Vec{277.5, 376.72, 278.5}
+
+	triangleList := make([]hitable, 6)
+	// bottom 3 triangles
+	triangleList[0] = &triangle{v11, v12, v21, red, true}
+	triangleList[1] = &triangle{v12, v13, v22, red, true}
+	triangleList[2] = &triangle{v13, v14, v23, red, true}
+	// middle 2 triangles
+	triangleList[3] = &triangle{v21, v22, v31, red, true}
+	triangleList[4] = &triangle{v22, v23, v32, red, true}
+	// top triangle
+	triangleList[5] = &triangle{v31, v32, v41, red, true}
+
+	w.Objs = append(w.Objs, bvhNodeInit(triangleList, 6, 0.0, 1.0))
 }
 
 func generateWorld(w *World) {

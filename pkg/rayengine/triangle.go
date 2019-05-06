@@ -4,8 +4,6 @@ import (
 	"math/rand"
 )
 
-var triangleDebugCount int = 0
-
 type triangle struct {
 	X, Y, Z  *Vec
 	Material material
@@ -21,7 +19,6 @@ func (tri *triangle) calculateNormal() *Vec {
 }
 
 func (tri *triangle) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
-	triangleDebugCount++
 	var rec hit
 
 	e1 := tri.Y.SubVI(tri.X)
