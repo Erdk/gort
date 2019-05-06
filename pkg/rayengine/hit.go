@@ -39,7 +39,7 @@ type hitable interface {
 type hitlist []hitable
 
 func (h hitlist) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
-	var retRec hit
+	var pointOfHit hit
 	hitAnything := false
 	closestSoFar := max
 	for _, v := range h {
@@ -49,15 +49,11 @@ func (h hitlist) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool,
 		if h, rec := v.calcHit(randSource, r, min, closestSoFar); h {
 			hitAnything = true
 			closestSoFar = rec.t
-			retRec = rec
+			pointOfHit = rec
 		}
 	}
 
-	if hitAnything {
-		return true, retRec
-	}
-
-	return false, hit{}
+	return hitAnything, pointOfHit
 }
 
 func (h hitlist) boundingBox(t0, t1 float64) (bool, *aabb) {

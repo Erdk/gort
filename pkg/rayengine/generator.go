@@ -21,15 +21,24 @@ import (
 	"math/rand"
 )
 
+// AvailableWorlds returns presets with scenes
 func AvailableWorlds() []string {
-	return []string{"perlin", "lightAndRectTest", "cornellBox", "testTexture", "colorVolWorld", "genWorld", "genWorld2"}
+	return []string{
+		"perlin",
+		"lightAndRectTest",
+		"cornellBox",
+		"testTexture",
+		"defRoomOneTriangle",
+		"generateWorld",
+		"generateWorld2"}
 }
 
+// NewWorld creates world with camera and objects from preset
 func NewWorld(preset string, nx, ny float64) *World {
 	w := &World{}
 	switch preset {
 	case "perlin":
-		perlinTest(w)
+		perlinTest(w, nx, ny)
 		return w
 	case "lightAndRectTest":
 		lightAndRectTest(w)
@@ -38,10 +47,10 @@ func NewWorld(preset string, nx, ny float64) *World {
 		cornellBox(w, nx, ny)
 		return w
 	case "testTexture":
-		testTexture(w)
+		testTexture(w, nx, ny)
 		return w
-	case "colorVolWorld":
-		colorVolWorld(w, nx, ny)
+	case "defRoomOneTriangle":
+		defRoomOneTriangle(w, nx, ny)
 		return w
 	case "genWorld":
 		generateWorld(w)
@@ -53,25 +62,42 @@ func NewWorld(preset string, nx, ny float64) *World {
 	return nil
 }
 
-func perlinTest(w *World) {
+/*
+ * createDefaultRoom creates simple room with dimmensions
+ * 555x555x555, camera set and the middle of XY scene, looking from -700z at 0z
+ */
+func createDefaultRoom(w *World, nx, ny float64) {
+	// setup default camera
+	lookFrom := &Vec{278.0, 278.0, -700}
+	lookAt := &Vec{278.0, 278.0, 0.0}
+	distToFocus := 10.0
+	aperture := 0.0
+	vFov := 40.0
+	w.Cam = NewCamera(lookFrom, lookAt, &Vec{0.0, 1.0, 0.0}, vFov,
+		float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
+
+	// setup room with top light, white walls, floor and ceiling
 	w.Objs = make([]hitable, 6)
 
 	// materials
 	white := newLambertianRGB(0.73, 0.73, 0.73)
-	//light := newDiffuseLightRGB(0.0, 0.0, 0.0)
-	perlin := &lambertian{&noiseTexture{0.05}, &noiseTexture{0.05}}
-
-	// objects
+	light := newDiffuseLightRGB(1.0, 1.0, 1.0)
 
 	// room
 	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	w.Objs[2] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[2] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, light}}
 	w.Objs[3] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	w.Objs[4] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
+}
 
+func perlinTest(w *World, nx, ny float64) {
+	createDefaultRoom(w, nx, ny)
+
+	perlin := &lambertian{&noiseTexture{0.05}, &noiseTexture{0.05}}
 	// centered sphere
-	w.Objs[5] = &sphere{&Vec{278.0, 278.0, 278.0}, 130, perlin}
+	w.Objs = append(w.Objs, &sphere{&Vec{278.0, 278.0, 278.0}, 130, perlin})
 }
 
 func lightAndRectTest(w *World) {
@@ -121,100 +147,41 @@ func cornellBox(w *World, nx, ny float64) {
 	b2 := &translate{NewRotateY(
 		NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{165.0, 330.0, 165.0}, white), 15.0),
 		&Vec{265.0, 0.0, 295.0}}
-	w.Objs[6] = b1 //&constantMedium{b1, 0.01, newIsotropicMaterialRGB(1.0, 1.0, 1.0)}
-	w.Objs[7] = b2 //&constantMedium{b2, 0.01, newIsotropicMaterialRGB(0.0, 0.0, 0.0)}
+	w.Objs[6] = b1
+	w.Objs[7] = b2
 }
 
-func testTexture(w *World) {
-	w.Objs = make([]hitable, 7)
+func testTexture(w *World, nx, ny float64) {
+	createDefaultRoom(w, nx, ny)
 
 	// materials
-	red := newLambertianRGB(0.65, 0.05, 0.05)
-	white := newLambertianRGB(0.73, 0.73, 0.73)
-	green := newLambertianRGB(0.12, 0.45, 0.15)
-	light := newDiffuseLightRGB(7.0, 7.0, 7.0)
 	texture, err := getImageTexture("static/earthmap.jpg")
 	if err != nil {
 		panic("CANNOT LOAD TEXTURE!")
 	}
 	textureMaterial := lambertian{texture, &constantTexture{&Vec{0.0, 0.0, 0.0}}}
 
-	// objects
-
-	// room
-	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, green}}
-	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, red}
-	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
-	w.Objs[3] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-	w.Objs[4] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-
 	// centered sphere
-	w.Objs[6] = &sphere{&Vec{278.0, 278.0, 278.0}, 130, &textureMaterial}
+	w.Objs = append(w.Objs, &sphere{&Vec{278.0, 278.0, 278.0}, 130, &textureMaterial})
 }
 
-// colorVolWorld: generates scene with room and 3 dielectric spheres, middle one contains volume object
-func colorVolWorld(w *World, nx, ny float64) {
-	lookFrom := &Vec{278.0, 278.0, -700}
-	lookAt := &Vec{278.0, 278.0, 0.0}
-	distToFocus := 10.0
-	aperture := 0.0
-	vFov := 40.0
-	w.Cam = NewCamera(lookFrom, lookAt, &Vec{0.0, 1.0, 0.0}, vFov,
-		float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
-
-	w.Objs = make([]hitable, 10)
+// Creates test scene with a triangle
+func defRoomOneTriangle(w *World, nx, ny float64) {
+	createDefaultRoom(w, nx, ny)
 
 	// materials
+	red := newLambertianRGB(0.85, 0.05, 0.05)
 
-	white := newLambertianRGB(0.73, 0.73, 0.73)
-	//red := newLambertianRGB(0.65, 0.05, 0.05)
-	//blue := newLambertianRGB(0.05, 0.05, 0.65)
-	//green := newLambertianRGB(0.12, 0.45, 0.15)
-
-	light := newDiffuseLightRGB(1.0, 1.0, 1.0)
-
-	//earthTexture, err := getImageTexture("static/earthmap.jpg")
-	//if err != nil {
-	//	panic("CANNOT LOAD TEXTURE!")
-	//}
-	//earthMat := &lambertian{earthTexture, earthTexture}
-
-	//moonTexture, err := getImageTexture("static/moonmap.jpg")
-	//if err != nil {
-	//	panic("CANNOT LOAD TEXTURE!")
-	//}
-	//moonMat := &lambertian{moonTexture, moonTexture}
-
-	// objects
-
-	// room
-	w.Objs[0] = &flipNormals{&yzrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-	w.Objs[1] = &yzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	//	w.Objs[2] = &xzrect{113.0, 443.0, 127.0, 432.0, 554.0, light}
-	w.Objs[2] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, light}}
-	w.Objs[3] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
-	w.Objs[4] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-	// Earth
-	//w.Objs[5] = &sphere{&Vec{208.0, 208.0, 208.0}, 140, earthMat}
-	//	w.Objs[5] = &sphere{&Vec{278.0, 208.0, 278.0}, 140, light}
-	// Moom
-	//w.Objs[6] = &sphere{&Vec{417.0, 417.0, 417.0}, 40, moonMat}
-	//w.Objs[6] = &sphere{&Vec{417.0, 317.0, 217.0}, 40, red}
-	//w.Objs[7] = &sphere{&Vec{317.0, 417.0, 217.0}, 40, green}
-	//w.Objs[8] = &sphere{&Vec{217.0, 417.0, 317.0}, 40, blue}
-
-	//w.Objs[10] = &triangle{
-	//	&Vec{0.0, 0.0, 554.0},
-	//	&Vec{278.0, 555.0, 554.0},
-	//	&Vec{555.0, 0.0, 554.0},
-	//	red,
-	//	true,
-	//}
-
-	// "mist"
-	//boxBoundary := NewBox(&Vec{0.0, 0.0, 0.0}, &Vec{555.0, 555.0, 555.0}, newDielectric(1.5))
-	//w.Objs[7] = &constantMedium{boxBoundary, 0.0005, newIsotropicMaterialRGB(0.3, 0.3, 0.3)}
+	// triangle
+	w.Objs = append(
+		w.Objs,
+		&triangle{
+			&Vec{0.0, 0.0, 554.0},
+			&Vec{555.0, 0.0, 554.0},
+			&Vec{278.5, 555.0, 554.0},
+			red,
+			true,
+		})
 }
 
 func generateWorld(w *World) {
