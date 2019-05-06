@@ -25,13 +25,18 @@ import (
 const maxdepth = 5
 
 func randomInUnitSphere(randSource *rand.Rand) *Vec {
-	p := &Vec{2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0, 2.0*randSource.Float64() - 1.0}
-
-	for p.Len()*p.Len() >= 1.0 {
-		p[0] = 2.0*randSource.Float64() - 1.0
-		p[1] = 2.0*randSource.Float64() - 1.0
-		p[2] = 2.0*randSource.Float64() - 1.0
+	p := &Vec{
+		2.0*randSource.Float64() - 1.0,
+		2.0*randSource.Float64() - 1.0,
+		2.0*randSource.Float64() - 1.0,
 	}
+	p.Normalize()
+
+	// for p.Len()*p.Len() >= 1.0 {
+	// 	p[0] = 2.0*randSource.Float64() - 1.0
+	// 	p[1] = 2.0*randSource.Float64() - 1.0
+	// 	p[2] = 2.0*randSource.Float64() - 1.0
+	// }
 
 	return p
 }

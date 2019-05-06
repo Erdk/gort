@@ -21,6 +21,7 @@ import (
 	"math/rand"
 )
 
+// World holds camera parameters and list of objects
 type World struct {
 	Cam  camera
 	Objs hitlist
