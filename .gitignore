@@ -27,5 +27,6 @@ gort
 gort.exe
 vendor
 *.png
+!static/*.png
 .vscode
 *.pprof
