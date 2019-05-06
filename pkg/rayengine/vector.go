@@ -21,6 +21,17 @@ import (
 	"math"
 )
 
+// EPSILON constant for checking if two float numbers are the same
+const EPSILON = 0.000000001
+
+// InCloseRange checks if two numbers are identical, for floating-point computations
+func InCloseRange(a, b float64) bool {
+	if a-b < EPSILON && a-b > -EPSILON {
+		return true
+	}
+	return false
+}
+
 // Vec is a vector with implemented main math ops, both mutable and unmutable
 type Vec [3]float64
 

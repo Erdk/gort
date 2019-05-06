@@ -38,11 +38,11 @@ func newLambertianRGB(r, g, b float64) material {
 		&constantTexture{&Vec{0.0, 0.0, 0.0}}}
 }
 
-func (l *lambertian) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
-	in.origin = rec.p
-	in.direction = rec.normal.AddVM(randomInUnitSphere(randSource))
+func (l *lambertian) scatter(randSource *rand.Rand, in *ray, pointOfHit hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
+	in.origin = pointOfHit.p
+	in.direction = pointOfHit.normal.AddVM(randomInUnitSphere(randSource))
 	scattered = in
-	attenuationR, attenuationG, attenuationB = l.Albedo.value(rec.u, rec.v, rec.p)
+	attenuationR, attenuationG, attenuationB = l.Albedo.value(pointOfHit.u, pointOfHit.v, pointOfHit.p)
 	decision = true
 	return
 }

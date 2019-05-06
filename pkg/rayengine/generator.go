@@ -68,7 +68,7 @@ func NewWorld(preset string, nx, ny float64) *World {
  */
 func createDefaultRoom(w *World, nx, ny float64) {
 	// setup default camera
-	lookFrom := &Vec{278.0, 278.0, -700}
+	lookFrom := &Vec{278.0, 278.0, -900}
 	lookAt := &Vec{278.0, 278.0, 0.0}
 	distToFocus := 10.0
 	aperture := 0.0
@@ -77,7 +77,7 @@ func createDefaultRoom(w *World, nx, ny float64) {
 		float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
 
 	// setup room with top light, white walls, floor and ceiling
-	w.Objs = make([]hitable, 6)
+	w.Objs = make([]hitable, 5)
 
 	// materials
 	white := newLambertianRGB(0.73, 0.73, 0.73)
@@ -89,7 +89,6 @@ func createDefaultRoom(w *World, nx, ny float64) {
 	w.Objs[2] = &flipNormals{&xzrect{0.0, 555.0, 0.0, 555.0, 555.0, light}}
 	w.Objs[3] = &xzrect{0.0, 555.0, 0.0, 555.0, 0.0, white}
 	w.Objs[4] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
-	w.Objs[5] = &flipNormals{&xyrect{0.0, 555.0, 0.0, 555.0, 555.0, white}}
 }
 
 func perlinTest(w *World, nx, ny float64) {
@@ -176,8 +175,8 @@ func defRoomOneTriangle(w *World, nx, ny float64) {
 	w.Objs = append(
 		w.Objs,
 		&triangle{
-			&Vec{0.0, 0.0, 554.0},
-			&Vec{555.0, 0.0, 554.0},
+			&Vec{0.0, 0.0, 0.0},
+			&Vec{555.0, 0.0, 0.0},
 			&Vec{278.5, 555.0, 554.0},
 			red,
 			true,
