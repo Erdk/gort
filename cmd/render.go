@@ -62,10 +62,10 @@ func init() {
 	renderCmd.Flags().UintVarP(&ny, "height", "e", 480, "width of rendered image, default: 480")
 	renderCmd.Flags().UintVarP(&ns, "samples", "s", 500, "width of rendered image, default: 500")
 	renderCmd.Flags().UintVarP(&nt, "threads", "t", 1, "width of rendered image, default: 1, 0 to launch one thread per CPU")
-	renderCmd.Flags().StringVarP(&output, "output", "o", "output", "filename without extension, default: output")
+	renderCmd.Flags().StringVarP(&output, "output", "o", "", "filename without extension, default: output_<timestamp>")
 	renderCmd.Flags().StringVar(&scene, "scene", "", "chose scene to render, default: colVolWorld")
 	renderCmd.Flags().StringVarP(&prof, "profile", "r", "", "generate cpu/mem/block profile, by default none")
-	renderCmd.Flags().BoolVarP(&progress, "progress", "p", true, "show progress, default: true")
+	renderCmd.Flags().BoolVarP(&progress, "progress", "p", false, "show progress, default: true")
 	renderCmd.Flags().StringVar(&computeUnit, "computeunit", "16x16", "unit of computation, format: wxh where w - width of stripe and h is height of stripe, by default '16x16'")
 }
 
@@ -89,7 +89,7 @@ func render() {
 	rand.Seed(time.Now().UnixNano())
 
 	if scene == "" {
-		scene = "colorVolWorld"
+		scene = "defRoomOneTriangle"
 	}
 	w := re.NewWorld(scene, float64(nx), float64(ny))
 
@@ -136,6 +136,10 @@ func render() {
 		go f(i)
 	}
 
+	if output == "" {
+		t := time.Now()
+		output = "output_" + t.Format("20060102150405")
+	}
 	fd, _ := os.Create(output + ".png")
 	defer fd.Close()
 
