@@ -23,9 +23,9 @@ import (
 )
 
 type sphere struct {
-	Center   *Vec
-	Radius   float64
-	Material material
+	Center      *Vec
+	Radius      float64
+	Material    material
 }
 
 func (s *sphere) calcHit(randSource *rand.Rand, r *ray, tMin, tMax float64) (bool, hit) {

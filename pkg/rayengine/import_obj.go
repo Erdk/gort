@@ -8,10 +8,7 @@ import (
 	"strings"
 )
 
-func readObj(filename string) (*bvhNode, error) {
-
-	red := newLambertianRGB(0.85, 0.05, 0.05)
-
+func readObj(filename string, mat material) (*bvhNode, error) {
 	objfile, err := os.Open(filename)
 	if err != nil {
 		return nil, errors.New("can't open file")
@@ -43,7 +40,7 @@ func readObj(filename string) (*bvhNode, error) {
 			v3, _ := strconv.Atoi(strings.Split(fields[3], "/")[0])
 
 			hlist = append(hlist, &triangle{
-				vertexList[v1-1], vertexList[v2-1], vertexList[v3-1], red, true,
+				vertexList[v1-1], vertexList[v2-1], vertexList[v3-1], mat, true,
 			})
 		}
 	}

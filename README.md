@@ -5,7 +5,7 @@ Simple ray tracer written in Go.
 
 ![alt tag](static/output.png)
 
-![alt tag](static/output_20190506154848.png)
+![alt tag](static/output_20190509222320.png)
 
 ## Instalation
 
@@ -57,12 +57,21 @@ Shirley's books on Amazon about ray-tracing: "Ray Tracing in One Weekend",
         Compute unit, number of patch to compute at once by goroutine, by default 16x16.
 ```
 
+## Licenses of used materials
+
 ### Dragon model (static/dragon.obj)
 License: [CC Attribution-NonCommercial](https://creativecommons.org/licenses/by-nc/4.0/)
 
 Author: [3D Graphics 101](https://sketchfab.com/3dgraphics)
 
-Link: https://sketchfab.com/3d-models/stanford-dragon-vrip-b602a35846e74533b1d9f06034a3b730
+Source: https://sketchfab.com/3d-models/stanford-dragon-vrip-b602a35846e74533b1d9f06034a3b730
 
 From the author: 
 > Dragon Source/credit: Stanford University Computer Graphics Laboratory Scanner: Cyberware 3030 MS + spacetime analysis Number of scans: ~70 Total size of scans: 2,748,318 points (about 5,500,000 triangles) Reconstruction: vrip (conservatively decimated).
+
+### HDR panorama (static/HDR_040_Field_Bg.jpg)
+License [Creative Commons Attribution 3.0 Unported License.](http://creativecommons.org/licenses/by/3.0/)
+
+Author: n/a
+
+Source: https://www.hdri-hub.com/hdrishop/freesamples/freehdri/item/116-hdr-040-field-free

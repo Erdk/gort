@@ -31,7 +31,9 @@ func AvailableWorlds() []string {
 		"defRoomOneTriangle",
 		"generateWorld",
 		"generateWorld2",
-		"dragon"}
+		"dragon",
+		"dragon2",
+	}
 }
 
 // NewWorld creates world with camera and objects from preset
@@ -61,6 +63,9 @@ func NewWorld(preset string, nx, ny float64) *World {
 		return w
 	case "dragon":
 		dragon(w, nx, ny)
+		return w
+	case "dragon2":
+		dragon2(w, nx, ny)
 		return w
 	}
 	return nil
@@ -107,19 +112,19 @@ func lightAndRectTest(w *World) {
 	w.Objs = make([]hitable, 4)
 	perlinTex := &noiseTexture{4.0}
 	w.Objs[0] = &sphere{
-		Radius:   1000,
-		Center:   &Vec{0.0, -1000.0, 0.0},
-		Material: &lambertian{perlinTex, &constantTexture{&Vec{0.0, 0.0, 0.0}}},
+		&Vec{0.0, -1000.0, 0.0},
+		1000,
+		&lambertian{perlinTex, &constantTexture{&Vec{0.0, 0.0, 0.0}}},
 	}
 	w.Objs[1] = &sphere{
-		Radius:   2,
-		Center:   &Vec{0.0, 2.0, 0.0},
-		Material: &lambertian{perlinTex, &constantTexture{&Vec{0.0, 0.0, 0.0}}},
+		&Vec{0.0, 2.0, 0.0},
+		2,
+		&lambertian{perlinTex, &constantTexture{&Vec{0.0, 0.0, 0.0}}},
 	}
 	w.Objs[2] = &sphere{
-		Radius:   2,
-		Center:   &Vec{0.0, 7.0, 0.0},
-		Material: newDiffuseLightRGB(4.0, 4.0, 4.0),
+		&Vec{0.0, 7.0, 0.0},
+		2,
+		newDiffuseLightRGB(4.0, 4.0, 4.0),
 	}
 	w.Objs[3] = &xyrect{3.0, 5.0, 1.0, 3.0, -2.0, newDiffuseLightRGB(4.0, 4.0, 4.0)}
 }
@@ -208,8 +213,35 @@ func defRoomOneTriangle(w *World, nx, ny float64) {
 func dragon(w *World, nx, ny float64) {
 	createDefaultRoom(w, nx, ny)
 
-	dragon, _ := readObj("static\\dragon.obj")
+	red := newLambertianRGB(0.85, 0.05, 0.05)
+	dragon, _ := readObj("static\\dragon.obj", red)
 
+	w.Objs = append(w.Objs, dragon)
+}
+
+func createOutdoorEnv(w *World, nx, ny float64) {
+	// setup default camera
+	lookFrom := &Vec{278.0, 278.0, -900}
+	lookAt := &Vec{278.0, 278.0, 0.0}
+	distToFocus := 10.0
+	aperture := 0.0
+	vFov := 40.0
+	w.Cam = NewCamera(lookFrom, lookAt, &Vec{0.0, 1.0, 0.0}, vFov,
+		float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
+
+	w.Objs = make([]hitable, 1)
+	// static\\HDR_040_Field_Bg.jpg
+	w.Objs[0] = &sphere{
+		&Vec{0.0, 0.0, 0.0},
+		5000,
+		newDiffuseLightTex("static\\HDR_040_Field_Bg.jpg"),
+	}
+}
+
+func dragon2(w *World, nx, ny float64) {
+	createOutdoorEnv(w, nx, ny)
+
+	dragon, _ := readObj("static\\dragon.obj", &dielectric{1.5, &Vec{1.0, 1.0, 1.0}})
 	w.Objs = append(w.Objs, dragon)
 }
 
