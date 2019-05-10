@@ -30,7 +30,8 @@ func AvailableWorlds() []string {
 		"testTexture",
 		"defRoomOneTriangle",
 		"generateWorld",
-		"generateWorld2"}
+		"generateWorld2",
+		"dragon"}
 }
 
 // NewWorld creates world with camera and objects from preset
@@ -57,6 +58,9 @@ func NewWorld(preset string, nx, ny float64) *World {
 		return w
 	case "genWorld2":
 		generateWorld2(w)
+		return w
+	case "dragon":
+		dragon(w, nx, ny)
 		return w
 	}
 	return nil
@@ -199,6 +203,14 @@ func defRoomOneTriangle(w *World, nx, ny float64) {
 	triangleList[5] = &triangle{v31, v32, v41, red, true}
 
 	w.Objs = append(w.Objs, bvhNodeInit(triangleList, 6, 0.0, 1.0))
+}
+
+func dragon(w *World, nx, ny float64) {
+	createDefaultRoom(w, nx, ny)
+
+	dragon, _ := readObj("static\\dragon.obj")
+
+	w.Objs = append(w.Objs, dragon)
 }
 
 func generateWorld(w *World) {
