@@ -50,11 +50,11 @@ var ns uint
 var nt uint
 var output string
 var scene string
-var saveraw bool
 var prof string
 var progress bool
 var computeUnit string
-var onlySaveJSON bool
+var printJSON bool
+var loadJSON string
 
 func init() {
 	RootCmd.AddCommand(renderCmd)
@@ -69,7 +69,8 @@ func init() {
 	renderCmd.Flags().StringVarP(&prof, "profile", "r", "", "generate cpu/mem/block profile, by default none")
 	renderCmd.Flags().BoolVarP(&progress, "progress", "p", false, "show progress, default: true")
 	renderCmd.Flags().StringVar(&computeUnit, "computeunit", "16x16", "unit of computation, format: wxh where w - width of stripe and h is height of stripe, by default '16x16'")
-	renderCmd.Flags().BoolVarP(&onlySaveJSON, "onlySaveJson", "j", false, "only save json profile of renderer")
+	renderCmd.Flags().BoolVarP(&printJSON, "print", "", false, "(DEBUG) print JSON profile of renderer to stdout")
+	renderCmd.Flags().StringVarP(&loadJSON, "load", "l", "", "renders scene from JSON file")
 }
 
 func render() {
@@ -91,13 +92,21 @@ func render() {
 	// seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
-	if scene == "" {
-		scene = "dragon"
+	var w *re.World
+	if loadJSON != "" {
+		// placeholder for proper scene loader
+		w = re.NewWorld(scene, float64(nx), float64(ny))
+	} else {
+		if scene == "" {
+			scene = "dragon2"
+		}
+		w = re.NewWorld(scene, float64(nx), float64(ny))
 	}
-	w := re.NewWorld(scene, float64(nx), float64(ny))
-	if onlySaveJSON {
+
+	// prints back scene to stdout, for debug purposes only
+	if printJSON {
 		b, _ := json.Marshal(w)
-		fmt.Printf("profile:\n %v", string(b))
+		fmt.Printf("scene:\n %v", string(b))
 		return
 	}
 

@@ -27,6 +27,7 @@ type material interface {
 	emit(u, v float64, p *Vec) (float64, float64, float64)
 }
 
+// Plain color
 type lambertian struct {
 	Albedo texture
 	Emit   texture
@@ -51,10 +52,7 @@ func (l *lambertian) emit(u, v float64, p *Vec) (float64, float64, float64) {
 	return l.Emit.value(u, v, p)
 }
 
-func reflectvec(v, n *Vec) *Vec {
-	return v.Copy().SubVM(n.MulSI(2.0 * v.Dot(n)))
-}
-
+// Metallic surface
 type metal struct {
 	Albedo *Vec
 	Fuzz   float64
@@ -84,26 +82,11 @@ func (m *metal) emit(u, v float64, p *Vec) (float64, float64, float64) {
 	return 0.0, 0.0, 0.0
 }
 
-func refract(v, n *Vec, niOverNt float64) (bool, *Vec) {
-	uv := v.NormalizeI()
-	dt := uv.Dot(n)
-	discriminant := 1.0 - niOverNt*niOverNt*(1-dt*dt)
-	if discriminant > 0.0 {
-		// ni_over_nt * (uv - n * dt) - n * sqrt(discriminant)
-		uv = uv.SubVM(n.MulSI(dt)).MulSM(niOverNt)
-		uv = uv.SubVM(n.MulSI(math.Sqrt(discriminant)))
-		return true, uv
-	}
-
-	return false, &Vec{}
+func reflectvec(v, n *Vec) *Vec {
+	return v.Copy().SubVM(n.MulSI(2.0 * v.Dot(n)))
 }
 
-func schlick(cosine, refIdx float64) float64 {
-	r0 := (1.0 - refIdx) / (1 + refIdx)
-	r0 = r0 * r0
-	return r0 + (1.0-r0)*math.Pow((1.0-cosine), 5.0)
-}
-
+// Semi-transparent material
 type dielectric struct {
 	RefIdx      float64
 	Attenuation *Vec
@@ -157,12 +140,40 @@ func (d *dielectric) emit(u, v float64, p *Vec) (float64, float64, float64) {
 	return 0.0, 0.0, 0.0
 }
 
+func refract(v, n *Vec, niOverNt float64) (bool, *Vec) {
+	uv := v.NormalizeI()
+	dt := uv.Dot(n)
+	discriminant := 1.0 - niOverNt*niOverNt*(1-dt*dt)
+	if discriminant > 0.0 {
+		// ni_over_nt * (uv - n * dt) - n * sqrt(discriminant)
+		uv = uv.SubVM(n.MulSI(dt)).MulSM(niOverNt)
+		uv = uv.SubVM(n.MulSI(math.Sqrt(discriminant)))
+		return true, uv
+	}
+
+	return false, &Vec{}
+}
+
+func schlick(cosine, refIdx float64) float64 {
+	r0 := (1.0 - refIdx) / (1 + refIdx)
+	r0 = r0 * r0
+	return r0 + (1.0-r0)*math.Pow((1.0-cosine), 5.0)
+}
+// Light source
 type diffuseLight struct {
 	emitTexture texture
 }
 
 func newDiffuseLightRGB(r, g, b float64) material {
 	return &diffuseLight{&constantTexture{&Vec{r, g, b}}}
+}
+
+func newDiffuseLightTex(filename string) material {
+	tex, err := getImageTexture(filename)
+	if err != nil {
+		panic("CANNOT CREATE LIGHT FROMTEXTURE")
+	}
+	return &diffuseLight{tex}
 }
 
 func (d *diffuseLight) scatter(randSource *rand.Rand, in *ray, rec hit) (decision bool, attenuationR, attenuationG, attenuationB float64, scattered *ray) {
