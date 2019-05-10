@@ -70,14 +70,14 @@ func NewQueue(xMax, yMax, xStripe, yStripe uint) *queue {
 }
 
 func (q *queue) GetJob() (Stripe, bool) {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+
 	if len(q.q) == 0 {
 		return Stripe{}, false
 	}
 
-	q.mtx.Lock()
 	retStripe := q.q[0]
 	q.q = q.q[1:len(q.q)]
-	q.mtx.Unlock()
-
 	return retStripe, true
 }
