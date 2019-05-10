@@ -3,9 +3,9 @@
 
 Simple ray tracer written in Go.
 
-![alt tag](https://raw.githubusercontent.com/Erdk/gort/master/static/output.png)
+![alt tag](static/output.png)
 
-![alt tag](https://raw.githubusercontent.com/Erdk/gort/master/static/output_20190506154848.png)
+![alt tag](static/output_20190506154848.png)
 
 ## Instalation
 
