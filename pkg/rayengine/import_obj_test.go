@@ -22,7 +22,7 @@ func Test_readObj(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := readObj(tt.args.filename)
+			got, err := readObj(tt.args.filename, newLambertianRGB(0, 0, 0))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("readObj() error = %v, wantErr %v", err, tt.wantErr)
 				return
