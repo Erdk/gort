@@ -21,14 +21,15 @@ import (
 	"math/rand"
 )
 
-type box struct {
+// Box holds dimmensions and list of faces
+type Box struct {
 	Min, Max *Vec
 	Faces    hitlist
 }
 
 // NewBox returns box bounded by two points, p0 and p1
-func NewBox(p0, p1 *Vec, m material) *box {
-	var b box
+func NewBox(p0, p1 *Vec, m material) *Box {
+	var b Box
 	b.Min = p0
 	b.Max = p1
 	b.Faces = make([]hitable, 6)
@@ -45,10 +46,10 @@ func NewBox(p0, p1 *Vec, m material) *box {
 	return &b
 }
 
-func (b *box) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (b *Box) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	return b.Faces.calcHit(randSource, r, min, max)
 }
 
-func (b *box) boundingBox(t0, t1 float64) (bool, *aabb) {
+func (b *Box) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return b.Faces.boundingBox(t0, t1)
 }

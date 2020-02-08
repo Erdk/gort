@@ -23,7 +23,7 @@ import (
 
 // World holds camera parameters and list of objects
 type World struct {
-	Cam  camera
+	Cam  Camera
 	Objs hitlist
 }
 

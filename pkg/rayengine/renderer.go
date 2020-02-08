@@ -53,6 +53,7 @@ func retColor(randSource *rand.Rand, r *ray, w *World, depth int) (float64, floa
 	return 0.0, 0.0, 0.0
 }
 
+// ComputeXY returns color at (X, Y) position of camera plane, computed ns times and averaged
 func ComputeXY(randSource *rand.Rand, w *World, x, y, nx, ny, ns uint) *Vec {
 	col := &Vec{0.0, 0.0, 0.0}
 	for s := uint(0); s < ns; s++ {

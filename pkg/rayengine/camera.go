@@ -22,7 +22,8 @@ import (
 	"math/rand"
 )
 
-type camera struct {
+// Camera describes properties of virtual camera which be used as parameters for rendering process
+type Camera struct {
 	LowerLeftCorner *Vec
 	Horizontal      *Vec
 	Vertical        *Vec
@@ -42,8 +43,9 @@ func randomInUnitDisk(randSource *rand.Rand) *Vec {
 	return p
 }
 
-func NewCamera(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) camera {
-	var cam camera
+// NewCamera prepares instance of object describing viewport and rendering properties
+func NewCamera(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0, t1 float64) Camera {
+	var cam Camera
 	cam.LensRadius = aperture / 2.0
 
 	theta := vfov * math.Pi / 180.0
@@ -66,7 +68,7 @@ func NewCamera(lookfrom, lookat, vup *Vec, vfov, aspect, aperture, focusDist, t0
 	return cam
 }
 
-func (cam *camera) getRay(randSource *rand.Rand, s, t float64) ray {
+func (cam *Camera) getRay(randSource *rand.Rand, s, t float64) ray {
 	rd := randomInUnitDisk(randSource)
 	rd = rd.MulSI(cam.LensRadius)
 	offset := cam.U.MulSI(rd[0]).AddVM(cam.V.MulSI(rd[1]))

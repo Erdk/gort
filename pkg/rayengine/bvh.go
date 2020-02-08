@@ -28,10 +28,10 @@ type bvhNode struct {
 	box         *aabb
 }
 
-type By func(o1, o2 hitable) bool
+type by func(o1, o2 hitable) bool
 
-func (by By) Sort(objs []hitable) {
-	bs := &bvhSorter{objs, by}
+func (sortDirection by) Sort(objs []hitable) {
+	bs := &bvhSorter{objs, sortDirection}
 	sort.Sort(bs)
 }
 
@@ -90,11 +90,11 @@ func bvhNodeInit(objs []hitable, n int, time0, time1 float64) *bvhNode {
 	// sort by chosen axis
 	switch axis {
 	case 0:
-		By(byX).Sort(objs)
+		by(byX).Sort(objs)
 	case 1:
-		By(byY).Sort(objs)
+		by(byY).Sort(objs)
 	default:
-		By(byZ).Sort(objs)
+		by(byZ).Sort(objs)
 	}
 
 	// build tree, "real"" obejcts are on leafs, internal nodes are representing bunding boxes

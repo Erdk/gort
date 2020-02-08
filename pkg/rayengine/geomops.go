@@ -47,15 +47,17 @@ func (t *translate) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return false, nil
 }
 
-type rotateY struct {
+// RotateY holds reference to original object along precomputed parameters for computing rotation
+type RotateY struct {
 	Obj                hitable
 	SinTheta, CosTheta float64
 	HasBox             bool
 	Box                *aabb
 }
 
-func NewRotateY(obj hitable, angle float64) *rotateY {
-	ry := rotateY{}
+// NewRotateY returns object containing original object rotated by 'angle' over y axis at center of object's bounding box
+func NewRotateY(obj hitable, angle float64) *RotateY {
+	ry := RotateY{}
 	ry.Obj = obj
 	radians := math.Pi / 180.0 * angle
 	ry.SinTheta = math.Sin(radians)
@@ -90,7 +92,7 @@ func NewRotateY(obj hitable, angle float64) *rotateY {
 	return &ry
 }
 
-func (ry *rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
+func (ry *RotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (bool, hit) {
 	origin := *r.origin
 	direction := *r.direction
 	origin[0] = ry.CosTheta*r.origin[0] - ry.SinTheta*r.origin[2]
@@ -113,6 +115,6 @@ func (ry *rotateY) calcHit(randSource *rand.Rand, r *ray, min, max float64) (boo
 	return false, hit{}
 }
 
-func (ry *rotateY) boundingBox(t0, t1 float64) (bool, *aabb) {
+func (ry *RotateY) boundingBox(t0, t1 float64) (bool, *aabb) {
 	return ry.HasBox, ry.Box
 }
