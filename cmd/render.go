@@ -57,7 +57,7 @@ var printJSON bool
 var loadJSON string
 
 func init() {
-	RootCmd.AddCommand(renderCmd)
+	rootCmd.AddCommand(renderCmd)
 
 	// Flags
 	renderCmd.Flags().UintVarP(&nx, "width", "w", 640, "width of rendered image, default: 640")

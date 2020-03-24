@@ -31,5 +31,5 @@ var serverCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(serverCmd)
+	rootCmd.AddCommand(serverCmd)
 }

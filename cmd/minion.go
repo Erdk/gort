@@ -32,5 +32,5 @@ var minionCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(minionCmd)
+	rootCmd.AddCommand(minionCmd)
 }
