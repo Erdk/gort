@@ -60,15 +60,15 @@ func init() {
 	rootCmd.AddCommand(renderCmd)
 
 	// Flags
-	renderCmd.Flags().UintVarP(&nx, "width", "w", 640, "width of rendered image, default: 640")
-	renderCmd.Flags().UintVarP(&ny, "height", "e", 480, "width of rendered image, default: 480")
-	renderCmd.Flags().UintVarP(&ns, "samples", "s", 500, "width of rendered image, default: 500")
-	renderCmd.Flags().UintVarP(&nt, "threads", "t", 1, "width of rendered image, default: 1, 0 to launch one thread per CPU")
+	renderCmd.Flags().UintVarP(&nx, "width", "w", 640, "width of rendered image")
+	renderCmd.Flags().UintVarP(&ny, "height", "e", 480, "width of rendered image")
+	renderCmd.Flags().UintVarP(&ns, "samples", "s", 500, "width of rendered image")
+	renderCmd.Flags().UintVarP(&nt, "threads", "t", 1, "width of rendered image, 0 to launch one thread per CPU")
 	renderCmd.Flags().StringVarP(&output, "output", "o", "", "filename without extension, default: output_<timestamp>")
-	renderCmd.Flags().StringVar(&scene, "scene", "", "chose scene to render, default: defRoomOneTriangle")
-	renderCmd.Flags().StringVarP(&prof, "profile", "r", "", "generate cpu/mem/block profile, by default none")
-	renderCmd.Flags().BoolVarP(&progress, "progress", "p", false, "show progress, default: true")
-	renderCmd.Flags().StringVar(&computeUnit, "computeunit", "16x16", "unit of computation, format: wxh where w - width of stripe and h is height of stripe, by default '16x16'")
+	renderCmd.Flags().StringVar(&scene, "scene", "defRoomOneTriangle", "chose scene to render")
+	renderCmd.Flags().StringVarP(&prof, "profile", "r", "", "generate cpu/mem/block profile")
+	renderCmd.Flags().BoolVarP(&progress, "progress", "p", false, "show progress")
+	renderCmd.Flags().StringVar(&computeUnit, "computeunit", "16x16", "unit of computation, format: wxh where w - width of stripe and h is height of stripe")
 	renderCmd.Flags().BoolVarP(&printJSON, "print", "", false, "(DEBUG) print JSON profile of renderer to stdout")
 	renderCmd.Flags().StringVarP(&loadJSON, "load", "l", "", "renders scene from JSON file")
 }
@@ -97,9 +97,6 @@ func render() {
 		// placeholder for proper scene loader
 		w = re.NewWorld(scene, float64(nx), float64(ny))
 	} else {
-		if scene == "" {
-			scene = "dragon2"
-		}
 		w = re.NewWorld(scene, float64(nx), float64(ny))
 	}
 
@@ -112,11 +109,11 @@ func render() {
 
 	img := image.NewRGBA(image.Rect(0, 0, int(nx), int(ny)))
 
-	xStripe, yStripe, err := util.ParseStripe(computeUnit)
+	xPatch, yPatch, err := util.StringToPatch(computeUnit)
 	if err != nil {
 		panic("Wrong stripe format!")
 	}
-	wQ := util.NewQueue(nx, ny, xStripe, yStripe)
+	wQ := util.NewQueue(nx, ny, xPatch, yPatch)
 
 	var wg sync.WaitGroup
 	if nt == 0 {
@@ -127,11 +124,11 @@ func render() {
 
 	f := func(threadNum int) {
 		defer wg.Done()
-		currentStripe, continueRun := wQ.GetJob()
+		currentPatch, continueRun := wQ.GetJob()
 		for continueRun {
 			randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
-			for j := currentStripe.YStart; j < currentStripe.YEnd; j++ {
-				for i := currentStripe.XStart; i < currentStripe.XEnd; i++ {
+			for j := currentPatch.YStart; j < currentPatch.YEnd; j++ {
+				for i := currentPatch.XStart; i < currentPatch.XEnd; i++ {
 					col := re.ComputeXY(randSource, w, i, j, nx, ny, ns)
 					img.Set(int(i), int(ny-j-1), color.RGBA{
 						uint8(col[0]),
@@ -142,10 +139,10 @@ func render() {
 			}
 
 			if progress {
-				progressCounter.IncrementCounter(uint((currentStripe.YEnd - currentStripe.YStart) * (currentStripe.XEnd - currentStripe.XStart)))
+				progressCounter.IncrementCounter(uint((currentPatch.YEnd - currentPatch.YStart) * (currentPatch.XEnd - currentPatch.XStart)))
 			}
 
-			currentStripe, continueRun = wQ.GetJob()
+			currentPatch, continueRun = wQ.GetJob()
 		}
 	}
 

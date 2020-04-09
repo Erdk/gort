@@ -22,11 +22,13 @@ import (
 	"sync"
 )
 
+// ProgressCounter holds mutex and state of current computed pixels
 type ProgressCounter struct {
 	counter, max, lastPrinted uint
 	mtx                       *sync.Mutex
 }
 
+// NewProgressCounter #constructor for ProgressCounter
 func NewProgressCounter(pixelNum uint) *ProgressCounter {
 	pC := &ProgressCounter{}
 	pC.counter = 0
@@ -37,6 +39,7 @@ func NewProgressCounter(pixelNum uint) *ProgressCounter {
 	return pC
 }
 
+// IncrementCounter increments current counter by 1 and prints result percent done to the stdut if it's greater that previously printed value
 func (p *ProgressCounter) IncrementCounter(count uint) {
 	p.mtx.Lock()
 	p.counter += count

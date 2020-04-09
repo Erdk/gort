@@ -19,16 +19,19 @@ package util
 
 import "sync"
 
-type Stripe struct {
+// Patch represents current computing patch of rendered image
+type Patch struct {
 	XStart, XEnd, YStart, YEnd uint
 }
 
-func ParseStripe(stripeString string) (uint, uint, error) {
+// StringToPatch #wip for now returns 16x16 cmputing dimmensions, in future will parse and validate user provided patch size
+func StringToPatch(stripeString string) (uint, uint, error) {
 	return 16, 16, nil
 }
 
-type queue struct {
-	q   []Stripe
+// Queue holds array patches to compute, single patch -> render coords to compute by single thread
+type Queue struct {
+	q   []Patch
 	mtx *sync.Mutex
 }
 
@@ -40,8 +43,9 @@ func min(a, b uint) uint {
 	return b
 }
 
-func NewQueue(xMax, yMax, xStripe, yStripe uint) *queue {
-	q := &queue{}
+// NewQueue #constructor for queue, considering compute patch size and whole render image size returns queue with work items with particular coordinates to compute for single thread
+func NewQueue(xMax, yMax, xStripe, yStripe uint) *Queue {
+	q := &Queue{}
 	q.mtx = &sync.Mutex{}
 
 	numXStripes := xMax / xStripe
@@ -54,10 +58,10 @@ func NewQueue(xMax, yMax, xStripe, yStripe uint) *queue {
 		numYStripes++
 	}
 
-	q.q = make([]Stripe, numXStripes*numYStripes)
+	q.q = make([]Patch, numXStripes*numYStripes)
 	for i := uint(0); i < numXStripes; i++ {
 		for j := uint(0); j < numYStripes; j++ {
-			q.q[i*numYStripes+j] = Stripe{
+			q.q[i*numYStripes+j] = Patch{
 				XStart: i * xStripe,
 				XEnd:   min((i+1)*xStripe, xMax),
 				YStart: j * yStripe,
@@ -69,12 +73,13 @@ func NewQueue(xMax, yMax, xStripe, yStripe uint) *queue {
 	return q
 }
 
-func (q *queue) GetJob() (Stripe, bool) {
+// GetJob returns next patch to process by thread
+func (q *Queue) GetJob() (Patch, bool) {
 	q.mtx.Lock()
 	defer q.mtx.Unlock()
 
 	if len(q.q) == 0 {
-		return Stripe{}, false
+		return Patch{}, false
 	}
 
 	retStripe := q.q[0]
