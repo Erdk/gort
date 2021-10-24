@@ -1,5 +1,5 @@
 // gort renderer
-// Copyright (C) 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+// Copyright (C) 2017 Erdk <mr.erdk@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-// Copyright © 2017 Łukasz 'Erdk' Redynk <mr.erdk@gmail.com>
+// Copyright © 2017 Erdk <mr.erdk@gmail.com>
 
 package rayengine
 
@@ -159,6 +159,7 @@ func schlick(cosine, refIdx float64) float64 {
 	r0 = r0 * r0
 	return r0 + (1.0-r0)*math.Pow((1.0-cosine), 5.0)
 }
+
 // Light source
 type diffuseLight struct {
 	emitTexture texture
