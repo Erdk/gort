@@ -23,7 +23,7 @@ _testmain.go
 *.test
 *.prof
 
-gort
+gort*
 gort.exe
 vendor
 *.png
