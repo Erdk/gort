@@ -17,6 +17,9 @@ pipeline {
             }
         }
         stage('Tests') {
+            environment {
+                CGO_ENABLED = '0'
+            }
             steps {
                 sh "go test ./..."
             }
