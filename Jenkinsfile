@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                git 'https://github.com/Erdk/gort'
+                git branch: 'main', url: 'https://github.com/Erdk/gort'
                 sh "go build ."
             }
         }
