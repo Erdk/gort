@@ -35,7 +35,7 @@ func TestTriangleCalcHit(t *testing.T) {
 		}
 
 		// normal should be at (0, 0, 1)
-		if result.normal[0] != 0.0 || result.normal[1] != 0.0 || result.normal[2] != 1.0 {
+		if result.normal[0] != 0.0 || result.normal[1] != 0.0 || result.normal[2] != -1.0 {
 			t.Error("normal don't match: ", result.normal)
 		}
 
@@ -63,7 +63,7 @@ func TestTriangleCalcHit(t *testing.T) {
 		}
 
 		// normal should be at (0, 0, 1)
-		if result.normal[0] != 0.0 || result.normal[1] != 0.0 || result.normal[2] != 1.0 {
+		if result.normal[0] != 0.0 || result.normal[1] != 0.0 || result.normal[2] != -1.0 {
 			t.Error("normal don't match: ", result.normal)
 		}
 
@@ -90,7 +90,7 @@ func TestTriangleCalcHit(t *testing.T) {
 		}
 
 		// normal should be at (0, 0, 1)
-		if result.normal[0] != 0.0 || result.normal[1] != 0.0 || result.normal[2] != 1.0 {
+		if result.normal[0] != 0.0 || result.normal[1] != 0.0 || result.normal[2] != -1.0 {
 			t.Error("normal don't match: ", result.normal)
 		}
 
@@ -114,17 +114,17 @@ func TestTriangleBoundingBox(t *testing.T) {
 	_, bb := tri.boundingBox(0, 1)
 
 	// X bounds
-	if bb.min[0] != 0.0 || bb.max[0] != 555.0 {
+	if InCloseRange(bb.min[0], 0.0) || InCloseRange(bb.max[0], 555.0) {
 		t.Errorf("X bounds not right: %v %v", bb.min[0], bb.max[0])
 	}
 
 	// Y bounds
-	if bb.min[1] != 0.0 || bb.max[1] != 555.0 {
+	if InCloseRange(bb.min[1], 0.0) || InCloseRange(bb.max[1], 555.0) {
 		t.Errorf("Y bounds not right: %v %v", bb.min[1], bb.max[1])
 	}
 
 	// Z bounds
-	if bb.min[2] != 554.0 || bb.max[2] != 554.0 {
+	if InCloseRange(bb.min[2], 554.0) || InCloseRange(bb.max[2], 554.0) {
 		t.Errorf("Z bounds not right: %v %v", bb.min[2], bb.max[2])
 	}
 }
