@@ -6,10 +6,19 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
+        stage('SCM') {
             steps {
                 git branch: 'main', url: 'https://github.com/Erdk/gort'
+            }
+        }
+        stage('Build') {
+            steps {
                 sh "go build ."
+            }
+        }
+        stage('Tests') {
+            steps {
+                sh "go test ./..."
             }
         }
     }
