@@ -61,11 +61,11 @@ func init() {
 
 	// Flags
 	renderCmd.Flags().UintVarP(&nx, "width", "w", 640, "width of rendered image")
-	renderCmd.Flags().UintVarP(&ny, "height", "e", 480, "width of rendered image")
-	renderCmd.Flags().UintVarP(&ns, "samples", "s", 500, "width of rendered image")
-	renderCmd.Flags().UintVarP(&nt, "threads", "t", 1, "width of rendered image, 0 to launch one thread per CPU")
+	renderCmd.Flags().UintVarP(&ny, "height", "e", 480, "height of rendered image")
+	renderCmd.Flags().UintVarP(&ns, "samples", "s", 500, "number of samples per pixel")
+	renderCmd.Flags().UintVarP(&nt, "threads", "t", 1, "number of compute threads to use, 0 to launch one thread per CPU")
 	renderCmd.Flags().StringVarP(&output, "output", "o", "", "filename without extension, default: output_<timestamp>")
-	renderCmd.Flags().StringVar(&scene, "scene", "defRoomOneTriangle", "chose scene to render")
+	renderCmd.Flags().StringVar(&scene, "scene", "defRoomOneTriangle", "scene to render")
 	renderCmd.Flags().StringVarP(&prof, "profile", "r", "", "generate cpu/mem/block profile")
 	renderCmd.Flags().BoolVarP(&progress, "progress", "p", false, "show progress")
 	renderCmd.Flags().StringVar(&computeUnit, "computeunit", "16x16", "unit of computation, format: wxh where w - width of stripe and h is height of stripe")
@@ -163,4 +163,5 @@ func render() {
 	if progress {
 		fmt.Printf("\n")
 	}
+	fmt.Printf("Saving to: %v", output)
 }

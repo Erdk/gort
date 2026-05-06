@@ -56,10 +56,10 @@ func NewWorld(preset string, nx, ny float64) *World {
 		defRoomOneTriangle(w, nx, ny)
 		return w
 	case "genWorld":
-		generateWorld(w)
+		generateWorld(w, nx, ny)
 		return w
 	case "genWorld2":
-		generateWorld2(w)
+		generateWorld2(w, nx, ny)
 		return w
 	case "dragon":
 		dragon(w, nx, ny)
@@ -245,7 +245,14 @@ func dragon2(w *World, nx, ny float64) {
 	w.Objs = append(w.Objs, dragon)
 }
 
-func generateWorld(w *World) {
+func generateWorld(w *World, nx, ny float64) {
+	lookFrom := &Vec{278.0, 278.0, -700}
+	lookAt := &Vec{278.0, 278.0, 0.0}
+	distToFocus := 10.0
+	aperture := 0.0
+	vFov := 40.0
+	w.Cam = NewCamera(lookFrom, lookAt, &Vec{0.0, 1.0, 0.0}, vFov, float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
+
 	w.Objs = make([]hitable, 500)
 	i := 0
 
@@ -350,7 +357,14 @@ func generateWorld(w *World) {
 		Material: newMetalRGB(0.0, 0.7, 0.6, 0.5)}
 }
 
-func generateWorld2(w *World) {
+func generateWorld2(w *World, nx, ny float64) {
+	lookFrom := &Vec{278.0, 278.0, -700}
+	lookAt := &Vec{278.0, 278.0, 0.0}
+	distToFocus := 10.0
+	aperture := 0.0
+	vFov := 40.0
+	w.Cam = NewCamera(lookFrom, lookAt, &Vec{0.0, 1.0, 0.0}, vFov, float64(nx)/float64(ny), aperture, distToFocus, 0.0, 1.0)
+
 	const nb = 20
 	l := 0
 	w.Objs = make([]hitable, 30)
